@@ -9,9 +9,5 @@ namespace Zipper.Domain.Compression.Blob
         {
             input.Write(data.Buffer, 0, data.Buffer.Length);
         }
-
-        public StreamBlobWriter(int bufferSize)
-        {
-        }
     }
 }
