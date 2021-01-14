@@ -1,6 +1,6 @@
-﻿using Zipper.Domain.Pipeline;
+﻿using Zipper.Domain.Compression;
 
-namespace Zipper.Domain.Compression
+namespace Zipper.Domain.Pipeline.Compression
 {
     public interface ICompressionPipeline<TReadIn, TReadOut, TWriteIn, TWriteOut> : IPipeline<TReadIn, TReadOut, TWriteIn, TWriteOut>
     {

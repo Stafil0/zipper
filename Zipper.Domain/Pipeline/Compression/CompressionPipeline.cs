@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Zipper.Domain.Compression;
 using Zipper.Domain.Data;
-using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.Compression
+namespace Zipper.Domain.Pipeline.Compression
 {
     public class CompressionPipeline :
         ICompressionPipeline<Stream, IEnumerable<Blob>, Stream, Blob>,
@@ -58,9 +58,8 @@ namespace Zipper.Domain.Compression
             }
         });
 
-        private List<Thread> GetWorkers(Func<byte[], byte[]> func)
-        {
-            return Enumerable
+        private List<Thread> GetWorkers(Func<byte[], byte[]> func) => 
+            Enumerable
                 .Range(0, _workersCount)
                 .Select(x => new Thread(() =>
                 {
@@ -78,7 +77,6 @@ namespace Zipper.Domain.Compression
                     } while (IsReading || _inputs.Any());
                 }))
                 .ToList();
-        }
 
         private Thread GetWriter(Stream output) => new Thread(() =>
         {

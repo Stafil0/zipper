@@ -2,7 +2,7 @@
 {
     public class Blob
     {
-        public int Offset { get; }
+        public int Offset { get; set; }
         
         public byte[] Buffer { get; set; }
 
