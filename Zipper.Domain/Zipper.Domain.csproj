@@ -38,11 +38,14 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="AsyncContext\AsyncStreamState.cs" />
-        <Compile Include="AsyncContext\AsyncStreamReader.cs" />
-        <Compile Include="AsyncContext\AsyncStreamWriter.cs" />
-        <Compile Include="AsyncContext\IAsyncStreamContext.cs" />
-        <Compile Include="Binary\Blob.cs" />
+        <Compile Include="Compression\CompressionPipeline.cs" />
+        <Compile Include="Compression\ICompressionPipeline.cs" />
+        <Compile Include="Compression\ICompressor.cs" />
+        <Compile Include="Compression\IDecompressor.cs" />
+        <Compile Include="Data\Blob.cs" />
+        <Compile Include="Pipeline\IWriter.cs" />
+        <Compile Include="Pipeline\IPipeline.cs" />
+        <Compile Include="Pipeline\IReader.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
