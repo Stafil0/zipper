@@ -38,13 +38,13 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Compression\Blob\StreamBlobWriter.cs" />
         <Compile Include="Compression\GZip\GzipCompressor.cs" />
         <Compile Include="Compression\GZip\GzipDecompressor.cs" />
         <Compile Include="Compression\ICompressor.cs" />
         <Compile Include="Compression\IDecompressor.cs" />
-        <Compile Include="Compression\Blob\StreamBlobReader.cs" />
         <Compile Include="Data\Blob.cs" />
+        <Compile Include="Data\StreamBlobReader.cs" />
+        <Compile Include="Data\StreamBlobWriter.cs" />
         <Compile Include="Pipeline\Compression\CompressionPipeline.cs" />
         <Compile Include="Pipeline\Compression\ICompressionPipeline.cs" />
         <Compile Include="Pipeline\IWriter.cs" />

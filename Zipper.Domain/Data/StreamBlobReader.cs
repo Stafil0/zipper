@@ -2,13 +2,13 @@
 using System.IO;
 using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.Compression.Blob
+namespace Zipper.Domain.Data
 {
-    public class StreamBlobReader : IReader<Stream, IEnumerable<Data.Blob>>
+    public class StreamBlobReader : IReader<Stream, IEnumerable<Blob>>
     {
         private readonly int _bufferSize;
 
-        public IEnumerable<Data.Blob> Read(Stream input)
+        public IEnumerable<Blob> Read(Stream input)
         {
             var offset = 0;
             var buffer = new byte[_bufferSize];
@@ -16,7 +16,7 @@ namespace Zipper.Domain.Compression.Blob
             while (input.Read(buffer, 0, buffer.Length) > 0)
             {
                 var blobBuffer = new byte[_bufferSize];
-                yield return new Data.Blob { Offset = offset++, Buffer = blobBuffer };
+                yield return new Blob { Offset = offset++, Buffer = blobBuffer };
             }
         }
 
