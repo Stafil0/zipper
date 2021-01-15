@@ -195,6 +195,7 @@ namespace Zipper.Domain.Pipeline.Compression
             _workers.Clear();
             _inputs = new ConcurrentBag<Blob>();
             _outputs = new BlockingPriorityQueue<Blob>();
+            _exceptions.Clear();
         }
 
         IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>
