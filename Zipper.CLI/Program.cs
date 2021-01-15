@@ -113,8 +113,15 @@ namespace Zipper.CLI
                     (DecompressOptions options) => Decompress(options),
                     errors =>
                     {
+                        var err = errors.ToArray();
+                        if (err.Any(x =>
+                            x.Tag == ErrorType.HelpRequestedError ||
+                            x.Tag == ErrorType.HelpVerbRequestedError || 
+                            x.Tag == ErrorType.VersionRequestedError))
+                            return 0;
+
                         Console.WriteLine("Errors while parsing options:");
-                        foreach (var error in errors)
+                        foreach (var error in err)
                             Console.WriteLine(error);
 
                         return 1;
