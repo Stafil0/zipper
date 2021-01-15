@@ -2,7 +2,7 @@
 
 namespace Zipper.Domain.Extensions
 {
-    internal static class SizeExtensions
+    public static class SizeExtensions
     {
         private static readonly string[] Sizes = {"B", "KB", "MB", "GB", "TB"}; 
 
