@@ -16,12 +16,7 @@ namespace Zipper.Domain.Compression.GZip
                 using (var input = new MemoryStream(data))
                 using (var zip = new GZipStream(input, CompressionMode.Decompress))
                 {
-                    int read;
-                    while ((read = zip.Read(data, 0, data.Length)) != 0)
-                    {
-                        Array.Resize(ref data, read);
-                        output.Write(data, 0, read);
-                    }
+                    zip.CopyTo(output);
                 }
 
                 return output.ToArray();

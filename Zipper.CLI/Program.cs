@@ -7,7 +7,6 @@ using System.Linq;
 using Zipper.Domain.BoundedBuffer.Blobs;
 using Zipper.Domain.BoundedBuffer.File;
 using Zipper.Domain.Compression.GZip;
-using Zipper.Domain.Data;
 using Zipper.Domain.Pipeline.Compression;
 
 namespace Zipper.CLI
@@ -38,7 +37,7 @@ namespace Zipper.CLI
         {
             using (var inputStream = new FileStream(input, FileMode.Open))
             using (var outputStream = new FileStream(output, FileMode.Create))
-            using (var compressor = new CompressionPipeline(16, 64))
+            using (var compressor = new CompressionPipeline(16, 16))
             {
                 compressor
                     .Reader(new FileStreamReader(1024 * 1024))
@@ -51,7 +50,7 @@ namespace Zipper.CLI
         {
             using (var inputStream = new FileStream(input, FileMode.Open))
             using (var outputStream = new FileStream(output, FileMode.Create))
-            using (var compressor = new CompressionPipeline(16, 64))
+            using (var compressor = new CompressionPipeline(16, 16))
             {
                 compressor
                     .Reader(new BlobReader())
@@ -64,39 +63,37 @@ namespace Zipper.CLI
         {
             var sw = new Stopwatch();
 
-            var completions = new List<long>();
-            for (var i = 0; i < 100; i++)
-            {
-                sw.Restart();
-                Compress("input.file", "compressed.file");
-                sw.Stop();
-            
-                completions.Add(sw.ElapsedMilliseconds);
-                // Console.WriteLine($"Compressed by {sw.ElapsedMilliseconds} milliseconds");
-            }
-            Console.WriteLine($"Compress avg = {completions.Sum() / completions.Count} milliseconds");
-
-            completions = new List<long>();
-            for (var i = 0; i < 100; i++)
-            {
-                sw.Restart();
-                Decompress("compressed.file", "decompressed.file");
-                sw.Stop();
-            
-                completions.Add(sw.ElapsedMilliseconds);
-                // Console.WriteLine($"Compressed by {sw.ElapsedMilliseconds} milliseconds");
-            }
-            Console.WriteLine($"Decompress avg = {completions.Sum() / completions.Count} milliseconds");
-            
-            // sw.Restart();
-            // Compress("input.file", "compressed.file");
-            // sw.Stop();
-            // Console.WriteLine($"Compressed by {sw.ElapsedMilliseconds} milliseconds");
+            // var completions = new List<long>();
+            // for (var i = 0; i < 100; i++)
+            // {
+            //     sw.Restart();
+            //     Compress("input.file", "compressed.file");
+            //     sw.Stop();
             //
-            // sw.Restart();
-            // Decompress("compressed.file", "decompressed.file");
-            // sw.Stop();
-            // Console.WriteLine($"Decompressed by {sw.ElapsedMilliseconds} milliseconds");
+            //     completions.Add(sw.ElapsedMilliseconds);
+            // }
+            // Console.WriteLine($"Compress avg = {completions.Sum() / completions.Count} milliseconds");
+            //
+            // completions = new List<long>();
+            // for (var i = 0; i < 100; i++)
+            // {
+            //     sw.Restart();
+            //     Decompress("compressed.file", "decompressed.file");
+            //     sw.Stop();
+            //
+            //     completions.Add(sw.ElapsedMilliseconds);
+            // }
+            // Console.WriteLine($"Decompress avg = {completions.Sum() / completions.Count} milliseconds");
+            
+            sw.Restart();
+            Compress("input.file", "compressed.file");
+            sw.Stop();
+            Console.WriteLine($"Compressed by {sw.ElapsedMilliseconds} milliseconds");
+            
+            sw.Restart();
+            Decompress("compressed.file", "decompressed.file");
+            sw.Stop();
+            Console.WriteLine($"Decompressed by {sw.ElapsedMilliseconds} milliseconds");
         }
     }
 }

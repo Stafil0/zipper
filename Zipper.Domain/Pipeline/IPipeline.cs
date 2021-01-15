@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Zipper.Domain.Pipeline
+﻿namespace Zipper.Domain.Pipeline
 {
     public interface IPipeline<TReadIn, TReadOut, TWriteIn, TWriteOut>
     {

@@ -12,8 +12,8 @@ namespace Zipper.Domain.Compression.GZip
 
             using (var output = new MemoryStream())
             {
-                using (var buffer = new GZipStream(output, CompressionMode.Compress))
-                    buffer.Write(data, 0, data.Length);
+                using (var zip = new GZipStream(output, CompressionMode.Compress))
+                    zip.Write(data, 0, data.Length);
 
                 return output.ToArray();
             }
