@@ -11,6 +11,7 @@
         <AssemblyName>Zipper.Domain</AssemblyName>
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -50,6 +51,8 @@
         <Compile Include="Compression\IDecompressor.cs" />
         <Compile Include="Data\Blob.cs" />
         <Compile Include="Data\BlobComparer.cs" />
+        <Compile Include="Exceptions\InvalidCompressionFormatException.cs" />
+        <Compile Include="Extensions\SizeExtensions.cs" />
         <Compile Include="Lockers\ReadLockCookie.cs" />
         <Compile Include="Lockers\WriteLockCookie.cs" />
         <Compile Include="Pipeline\Compression\CompressionPipeline.cs" />
@@ -57,6 +60,7 @@
         <Compile Include="Pipeline\IWriter.cs" />
         <Compile Include="Pipeline\IPipeline.cs" />
         <Compile Include="Pipeline\IReader.cs" />
+        <Compile Include="Pipeline\OnProgressEventArgs.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
