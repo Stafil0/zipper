@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Zipper.Domain.Collections;
 using Zipper.Domain.Compression;
 using Zipper.Domain.Data;
 
@@ -20,15 +21,15 @@ namespace Zipper.Domain.Pipeline.Compression
 
         private int _offset;
 
-        private readonly int _workLimit;
+        private readonly int? _workLimit;
 
         private readonly int _workersCount;
 
         private List<Thread> _workers;
 
-        private ConcurrentQueue<Blob> _inputs = new ConcurrentQueue<Blob>();
+        private ConcurrentBag<Blob> _inputs = new ConcurrentBag<Blob>();
 
-        private ConcurrentQueue<Blob> _outputs = new ConcurrentQueue<Blob>();
+        private BlockingPriorityQueue<Blob> _outputs = new BlockingPriorityQueue<Blob>(new BlobComparer());
 
         private IReader<Stream, IEnumerable<Blob>> _inputReader;
 
@@ -46,11 +47,11 @@ namespace Zipper.Domain.Pipeline.Compression
             using (var enumerator = _inputReader.Read(input).GetEnumerator())
             {
                 Debug.WriteLine($"Reader:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                
+
                 var next = enumerator.MoveNext();
                 while (next)
                 {
-                    if (_inputs.Count >= _workLimit)
+                    if (_workLimit.HasValue && _inputs.Count >= _workLimit)
                     {
                         Debug.WriteLine($"Reader:\tToo many blobs ({_inputs.Count}), spinning while >= {_workLimit}. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
                         spinner.SpinOnce();
@@ -61,7 +62,7 @@ namespace Zipper.Domain.Pipeline.Compression
                         if (current != null)
                         {
                             Debug.WriteLine($"Reader:\tGot blob ({current.Offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                            _inputs.Enqueue(current);
+                            _inputs.Add(current);
                         }
 
                         next = enumerator.MoveNext();
@@ -80,8 +81,8 @@ namespace Zipper.Domain.Pipeline.Compression
                     var spinner = new SpinWait();
                     do
                     {
-                        Debug.WriteLine($"Worker\tTrying get new work item. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                        if (!_inputs.TryDequeue(out var blob))
+                        Debug.WriteLine($"Worker:\tTrying get new work item. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                        if (!_inputs.TryTake(out var blob))
                         {
                             Debug.WriteLine($"Worker:\tNo work available, spinning. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
                             spinner.SpinOnce();
@@ -90,7 +91,7 @@ namespace Zipper.Domain.Pipeline.Compression
                         {
                             Debug.WriteLine($"Worker:\tWorking with blob ({blob.Offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
                             blob.Buffer = func(blob.Buffer);
-                            _outputs.Enqueue(blob);
+                            _outputs.TryEnqueue(blob);
                         }
                     } while (IsReading || _inputs.Any());
                 }))
@@ -103,24 +104,26 @@ namespace Zipper.Domain.Pipeline.Compression
             Debug.WriteLine($"Writer:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
             while (IsReading || IsWorking || _outputs.Any())
             {
-                if (!_outputs.Any())
+                if (!_outputs.TryPeek(out var blob))
                 {
-                    Debug.WriteLine($"Writer:\tNo blobs available for write, spinning. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                    Debug.WriteLine($"Writer:\tNo blobs available to write, spinning. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
                     spinner.SpinOnce();
                 }
                 else
                 {
                     Debug.WriteLine($"Writer:\tTrying to get new blob to write. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                    if (!_outputs.TryDequeue(out var blob) || blob.Offset != _offset)
+                    if (blob.Offset != _offset)
                     {
                         Debug.WriteLine($"Writer:\tBlob not in order ({blob.Offset}), waiting for ({_offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                        _outputs.Enqueue(blob);
                         spinner.SpinOnce();
                     }
                     else
                     {
-                        Debug.WriteLine($"Writer:\tGot blob ({blob.Offset}), writing. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                        blob = _outputs.Dequeue();
                         _outputWriter.Write(output, blob);
+
+                        Debug.WriteLine($"Writer:\tGot blob ({blob.Offset}), writing. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+
                         Interlocked.Increment(ref _offset);
                     }
                 }
@@ -129,6 +132,8 @@ namespace Zipper.Domain.Pipeline.Compression
 
         private void Run(Stream input, Stream output, Func<byte[], byte[]> func)
         {
+            Debug.WriteLine($"Compression pipeline started. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+
             _reader = GetReader(input);
             _reader.Start();
 
@@ -139,16 +144,18 @@ namespace Zipper.Domain.Pipeline.Compression
             _writer.Start();
 
             SpinWait.SpinUntil(() => !(IsReading || IsWorking || IsWriting));
+            
+            Debug.WriteLine($"Compression pipeline completed. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
             Flush();
         }
 
         private void Flush()
         {
-            _workers.Clear();
-            _inputs = new ConcurrentQueue<Blob>();
-            _outputs = new ConcurrentQueue<Blob>();
             _reader = null;
             _writer = null;
+            _workers.Clear();
+            _inputs = new ConcurrentBag<Blob>();
+            _outputs = new BlockingPriorityQueue<Blob>();
         }
 
         IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>.Reader(IReader<Stream, IEnumerable<Blob>> input) => Reader(input);
@@ -175,7 +182,7 @@ namespace Zipper.Domain.Pipeline.Compression
 
         public void Dispose() => Flush();
 
-        public CompressionPipeline(int threadsCount, int workLimit)
+        public CompressionPipeline(int threadsCount, int? workLimit)
         {
             _workersCount = threadsCount;
             _workLimit = workLimit;
