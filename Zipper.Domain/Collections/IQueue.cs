@@ -2,7 +2,7 @@
 
 namespace Zipper.Domain.Collections
 {
-    public interface IQueue<T> : IEnumerable<T> 
+    internal interface IQueue<T> : IEnumerable<T> 
     {
         T Peek();
 

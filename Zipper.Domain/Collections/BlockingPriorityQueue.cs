@@ -5,7 +5,7 @@ using Zipper.Domain.Lockers;
 
 namespace Zipper.Domain.Collections
 {
-    public class BlockingPriorityQueue<T> : IQueue<T>
+    internal class BlockingPriorityQueue<T> : IQueue<T>
     {
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private readonly SortedSet<T> _set;
