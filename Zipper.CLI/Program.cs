@@ -39,6 +39,7 @@ namespace Zipper.CLI
             {
                 var messages = string.Join(";", e.InnerExceptions.Select(x => x.Message));
                 Console.WriteLine($"One or more errors occurred while compressing file \"{options.InputFile}\" to \"{options.OutputFile}\": {messages}");
+                return 1;
             }
             catch (Exception e)
             {
@@ -75,6 +76,7 @@ namespace Zipper.CLI
             {
                 var messages = string.Join(";", e.InnerExceptions.Select(x => x.Message));
                 Console.WriteLine($"One or more errors occurred while decompressing file \"{options.InputFile}\" to \"{options.OutputFile}\": {messages}");
+                return 1;
             }
             catch (Exception e)
             {
