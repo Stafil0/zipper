@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.IO.Compression;
+using Zipper.Domain.Exceptions;
 
 namespace Zipper.Domain.Compression.GZip
 {
@@ -10,12 +11,17 @@ namespace Zipper.Domain.Compression.GZip
             if (data == null || data.Length == 0)
                 return data;
 
-            using (var output = new MemoryStream())
+            try
             {
+                using var output = new MemoryStream();
                 using (var zip = new GZipStream(output, CompressionMode.Compress))
                     zip.Write(data, 0, data.Length);
 
                 return output.ToArray();
+            }
+            catch (InvalidDataException e)
+            {
+                throw new InvalidCompressionFormatException(e);
             }
         }
     }

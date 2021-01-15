@@ -8,6 +8,7 @@ using System.Threading;
 using Zipper.Domain.Collections;
 using Zipper.Domain.Compression;
 using Zipper.Domain.Data;
+using Zipper.Domain.Extensions;
 
 namespace Zipper.Domain.Pipeline.Compression
 {
@@ -35,39 +36,60 @@ namespace Zipper.Domain.Pipeline.Compression
 
         private IWriter<Stream, Blob> _outputWriter;
 
+        private readonly List<Exception> _exceptions = new List<Exception>();
+
+        private AggregateException Exception => _exceptions.Any() ? new AggregateException(_exceptions) : null;
+
+        public event IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>.OnProgressHandler OnRead;
+
+        public event IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>.OnProgressHandler OnWrite;
+
         public bool IsReading => _reader != null && _reader.IsAlive;
 
         public bool IsWriting => _writer != null && _writer.IsAlive;
 
         public bool IsWorking => _workers.Any(x => x.IsAlive);
 
+        private void OnExceptionHandler(Exception e) => _exceptions.Add(e);
+
         private Thread GetReader(Stream input) => new Thread(() =>
         {
-            var spinner = new SpinWait();
-            using (var enumerator = _inputReader.Read(input).GetEnumerator())
+            try
             {
-                Debug.WriteLine($"Reader:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-
-                var next = enumerator.MoveNext();
-                while (next)
+                var size = 0;
+                var spinner = new SpinWait();
+                using (var enumerator = _inputReader.Read(input).GetEnumerator())
                 {
-                    if (_workLimit.HasValue && _inputs.Count >= _workLimit)
-                    {
-                        Debug.WriteLine($"Reader:\tToo many blobs ({_inputs.Count}), spinning while >= {_workLimit}. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                        spinner.SpinOnce();
-                    }
-                    else
-                    {
-                        var current = enumerator.Current;
-                        if (current != null)
-                        {
-                            Debug.WriteLine($"Reader:\tGot blob ({current.Offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                            _inputs.Add(current);
-                        }
+                    Debug.WriteLine($"Reader:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
 
-                        next = enumerator.MoveNext();
+                    var next = enumerator.MoveNext();
+                    while (next)
+                    {
+                        if (_workLimit.HasValue && _inputs.Count >= _workLimit)
+                        {
+                            Debug.WriteLine($"Reader:\tToo many blobs ({_inputs.Count}), spinning while >= {_workLimit}. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                            spinner.SpinOnce();
+                        }
+                        else
+                        {
+                            var current = enumerator.Current;
+                            if (current != null)
+                            {
+                                Debug.WriteLine($"Reader:\tGot blob ({current.Offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                                _inputs.Add(current);
+                                size += current.Size;
+
+                                OnRead?.Invoke(this, new OnProgressEventArgs(size, $"Read:\t{SizeExtensions.GetReadableSize(size)}."));
+                            }
+
+                            next = enumerator.MoveNext();
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                OnExceptionHandler(e);
             }
         });
 
@@ -76,57 +98,74 @@ namespace Zipper.Domain.Pipeline.Compression
                 .Range(0, _workersCount)
                 .Select(x => new Thread(() =>
                 {
-                    Debug.WriteLine($"Worker:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-
-                    var spinner = new SpinWait();
-                    do
+                    try
                     {
-                        Debug.WriteLine($"Worker:\tTrying get new work item. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                        if (!_inputs.TryTake(out var blob))
+                        Debug.WriteLine($"Worker:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+
+                        var spinner = new SpinWait();
+                        do
                         {
-                            Debug.WriteLine($"Worker:\tNo work available, spinning. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                            spinner.SpinOnce();
-                        }
-                        else
-                        {
-                            Debug.WriteLine($"Worker:\tWorking with blob ({blob.Offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                            blob.Buffer = func(blob.Buffer);
-                            _outputs.TryEnqueue(blob);
-                        }
-                    } while (IsReading || _inputs.Any());
+                            Debug.WriteLine($"Worker:\tTrying get new work item. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                            if (!_inputs.TryTake(out var blob))
+                            {
+                                Debug.WriteLine($"Worker:\tNo work available, spinning. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                                spinner.SpinOnce();
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"Worker:\tWorking with blob ({blob.Offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                                blob.Buffer = func(blob.Buffer);
+                                _outputs.TryEnqueue(blob);
+                            }
+                        } while (IsReading || _inputs.Any());
+                    }
+                    catch (Exception e)
+                    {
+                        OnExceptionHandler(e);
+                    }
                 }))
                 .ToList();
 
         private Thread GetWriter(Stream output) => new Thread(() =>
         {
-            var spinner = new SpinWait();
-            
-            Debug.WriteLine($"Writer:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-            while (IsReading || IsWorking || _outputs.Any())
+            try
             {
-                if (!_outputs.TryPeek(out var blob))
+                var spinner = new SpinWait();
+                var size = 0;
+
+                Debug.WriteLine($"Writer:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                while (IsReading || IsWorking || _outputs.Any())
                 {
-                    Debug.WriteLine($"Writer:\tNo blobs available to write, spinning. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                    spinner.SpinOnce();
-                }
-                else
-                {
-                    Debug.WriteLine($"Writer:\tTrying to get new blob to write. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                    if (blob.Offset != _offset)
+                    if (!_outputs.TryPeek(out var blob))
                     {
-                        Debug.WriteLine($"Writer:\tBlob not in order ({blob.Offset}), waiting for ({_offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                        Debug.WriteLine($"Writer:\tNo blobs available to write, spinning. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
                         spinner.SpinOnce();
                     }
                     else
                     {
-                        blob = _outputs.Dequeue();
-                        _outputWriter.Write(output, blob);
+                        Debug.WriteLine($"Writer:\tTrying to get new blob to write. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                        if (blob.Offset != _offset)
+                        {
+                            Debug.WriteLine($"Writer:\tBlob not in order ({blob.Offset}), waiting for ({_offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                            spinner.SpinOnce();
+                        }
+                        else
+                        {
+                            blob = _outputs.Dequeue();
+                            _outputWriter.Write(output, blob);
+                            size += blob.Size;
 
-                        Debug.WriteLine($"Writer:\tGot blob ({blob.Offset}), writing. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-
-                        Interlocked.Increment(ref _offset);
+                            OnWrite?.Invoke(this, new OnProgressEventArgs(size, $"Write:\t{SizeExtensions.GetReadableSize(size)}."));
+                            Debug.WriteLine($"Writer:\tGot blob ({blob.Offset}), writing. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+                            
+                            Interlocked.Increment(ref _offset);
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                OnExceptionHandler(e);
             }
         });
 
@@ -158,7 +197,8 @@ namespace Zipper.Domain.Pipeline.Compression
             _outputs = new BlockingPriorityQueue<Blob>();
         }
 
-        IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>.Reader(IReader<Stream, IEnumerable<Blob>> input) => Reader(input);
+        IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>
+            .Reader(IReader<Stream, IEnumerable<Blob>> input) => Reader(input);
 
         public CompressionPipeline Reader(IReader<Stream, IEnumerable<Blob>> input)
         {
@@ -166,7 +206,8 @@ namespace Zipper.Domain.Pipeline.Compression
             return this;
         }
 
-        IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>.Writer(IWriter<Stream, Blob> input) => Writer(input);
+        IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>
+            .Writer(IWriter<Stream, Blob> input) => Writer(input);
 
         public CompressionPipeline Writer(IWriter<Stream, Blob> output)
         {
@@ -179,6 +220,12 @@ namespace Zipper.Domain.Pipeline.Compression
 
         public void Decompress(Stream input, Stream output, IDecompressor decompressor) =>
             Run(input, output, decompressor.Decompress);
+
+        public void ThrowIfException()
+        {
+            if (Exception != null)
+                throw Exception;
+        }
 
         public void Dispose() => Flush();
 
