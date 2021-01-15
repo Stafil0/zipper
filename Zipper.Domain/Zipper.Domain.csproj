@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{AB0548BC-2F5B-419F-85AB-64C38C6045C7}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Zipper.Domain</RootNamespace>
+        <AssemblyName>Zipper.Domain</AssemblyName>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="BoundedBuffer\Blobs\BlobReader.cs" />
+        <Compile Include="BoundedBuffer\Blobs\BlobWriter.cs" />
+        <Compile Include="BoundedBuffer\File\FileStreamReader.cs" />
+        <Compile Include="BoundedBuffer\File\FileStreamWriter.cs" />
+        <Compile Include="Collections\BlockingPriorityQueue.cs" />
+        <Compile Include="Collections\IQueue.cs" />
+        <Compile Include="Compression\GZip\GzipCompressor.cs" />
+        <Compile Include="Compression\GZip\GzipDecompressor.cs" />
+        <Compile Include="Compression\ICompressor.cs" />
+        <Compile Include="Compression\IDecompressor.cs" />
+        <Compile Include="Data\Blob.cs" />
+        <Compile Include="Data\BlobComparer.cs" />
+        <Compile Include="Exceptions\InvalidCompressionFormatException.cs" />
+        <Compile Include="Extensions\SizeExtensions.cs" />
+        <Compile Include="Lockers\ReadLockCookie.cs" />
+        <Compile Include="Lockers\WriteLockCookie.cs" />
+        <Compile Include="Pipeline\Compression\CompressionPipeline.cs" />
+        <Compile Include="Pipeline\Compression\ICompressionPipeline.cs" />
+        <Compile Include="Pipeline\IWriter.cs" />
+        <Compile Include="Pipeline\IPipeline.cs" />
+        <Compile Include="Pipeline\IReader.cs" />
+        <Compile Include="Pipeline\OnProgressEventArgs.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="BoundedBuffer" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>
