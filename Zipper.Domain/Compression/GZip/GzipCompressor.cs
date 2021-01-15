@@ -5,8 +5,6 @@ namespace Zipper.Domain.Compression.GZip
 {
     public class GzipCompressor : ICompressor
     {
-        private readonly int _bufferSize;
-
         public byte[] Compress(byte[] data)
         {
             if (data == null || data.Length == 0)
@@ -14,18 +12,11 @@ namespace Zipper.Domain.Compression.GZip
 
             using (var output = new MemoryStream())
             {
-                using (var buf = new BufferedStream(new GZipStream(output, CompressionMode.Compress), _bufferSize))
-                {
-                    buf.Write(data, 0, data.Length);
-                }
+                using (var buffer = new GZipStream(output, CompressionMode.Compress))
+                    buffer.Write(data, 0, data.Length);
 
                 return output.ToArray();
             }
-        }
-
-        public GzipCompressor(int bufferSize)
-        {
-            _bufferSize = bufferSize;
         }
     }
 }

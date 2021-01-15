@@ -6,36 +6,26 @@ namespace Zipper.Domain.Compression.GZip
 {
     public class GzipDecompressor : IDecompressor
     {
-        private readonly int _bufferSize;
-
         public byte[] Decompress(byte[] data)
         {
             if (data == null || data.Length == 0)
                 return data;
 
-            var buf = new byte[_bufferSize];
             using (var output = new MemoryStream())
             {
                 using (var input = new MemoryStream(data))
+                using (var zip = new GZipStream(input, CompressionMode.Decompress))
                 {
-                    using (var gzs = new BufferedStream(new GZipStream(input, CompressionMode.Decompress), buf.Length))
+                    int read;
+                    while ((read = zip.Read(data, 0, data.Length)) != 0)
                     {
-                        int count;
-                        while ((count = gzs.Read(buf, 0, buf.Length)) != 0)
-                        {
-                            Array.Resize(ref buf, count);
-                            output.Write(buf, 0, count);
-                        }
+                        Array.Resize(ref data, read);
+                        output.Write(data, 0, read);
                     }
                 }
 
                 return output.ToArray();
             }
-        }
-
-        public GzipDecompressor(int bufferSize)
-        {
-            _bufferSize = bufferSize;
         }
     }
 }
