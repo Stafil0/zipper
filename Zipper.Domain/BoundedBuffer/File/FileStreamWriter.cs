@@ -1,9 +1,10 @@
 ﻿using System.IO;
+using Zipper.Domain.Data;
 using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.Data
+namespace Zipper.Domain.BoundedBuffer.File
 {
-    public class StreamBlobWriter : IWriter<Stream, Blob>
+    public class FileStreamWriter : IWriter<Stream, Blob>
     {
         public void Write(Stream input, Blob data)
         {
