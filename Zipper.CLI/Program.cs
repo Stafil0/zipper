@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Zipper.Domain.BoundedBuffer.Blobs;
+using Zipper.Domain.BoundedBuffer.File;
 using Zipper.Domain.Compression.GZip;
 using Zipper.Domain.Data;
 using Zipper.Domain.Pipeline.Compression;
@@ -36,12 +38,12 @@ namespace Zipper.CLI
         {
             using (var inputStream = new FileStream(input, FileMode.Open))
             using (var outputStream = new FileStream(output, FileMode.Create))
-            using (var compressor = new CompressionPipeline(16, 16))
+            using (var compressor = new CompressionPipeline(1, 16))
             {
                 compressor
-                    .Reader(new StreamBlobReader(1024 * 1024))
-                    .Writer(new StreamBlobWriter())
-                    .Compress(inputStream, outputStream, new GzipCompressor(1024 * 1024));
+                    .Reader(new FileStreamReader(1024 * 1024))
+                    .Writer(new BlobWriter())
+                    .Compress(inputStream, outputStream, new GzipCompressor());
             }
         }
 
@@ -49,36 +51,41 @@ namespace Zipper.CLI
         {
             using (var inputStream = new FileStream(input, FileMode.Open))
             using (var outputStream = new FileStream(output, FileMode.Create))
-            using (var compressor = new CompressionPipeline(16, 16))
+            using (var compressor = new CompressionPipeline(1, 16))
             {
                 compressor
-                    .Reader(new StreamBlobReader(1024 * 1024))
-                    .Writer(new StreamBlobWriter())
-                    .Decompress(inputStream, outputStream, new GzipDecompressor(1024 * 1024));
+                    .Reader(new BlobReader())
+                    .Writer(new FileStreamWriter())
+                    .Decompress(inputStream, outputStream, new GzipDecompressor());
             }
         }
         
         public static void Main(string[] args)
         {
             var sw = new Stopwatch();
-            var completions = new List<long>();
 
-            for (var i = 0; i < 100; i++)
-            {
-                sw.Restart();
-                GzipCompress("input.file", "compressed.file");
-                sw.Stop();
-                
-                completions.Add(sw.ElapsedMilliseconds);
-                // Console.WriteLine($"Compressed by {sw.ElapsedMilliseconds} milliseconds");
-            }
+            // var completions = new List<long>();
+            // for (var i = 0; i < 100; i++)
+            // {
+            //     sw.Restart();
+            //     Compress("input.file", "compressed.file");
+            //     sw.Stop();
+            //
+            //     completions.Add(sw.ElapsedMilliseconds);
+            //     // Console.WriteLine($"Compressed by {sw.ElapsedMilliseconds} milliseconds");
+            // }
+            //
+            // Console.WriteLine($"Avg = {completions.Sum() / completions.Count} milliseconds");
             
-            Console.WriteLine($"Avg = {completions.Sum() / completions.Count} milliseconds");
-
-            // sw.Restart();
-            // Decompress("compressed.file", "decompressed.file");
-            // sw.Stop();
-            // Console.WriteLine($"Decompressed by {sw.ElapsedMilliseconds} milliseconds");
+            sw.Restart();
+            Compress("input.file", "compressed.file");
+            sw.Stop();
+            Console.WriteLine($"Compressed by {sw.ElapsedMilliseconds} milliseconds");
+            
+            sw.Restart();
+            Decompress("compressed.file", "decompressed.file");
+            sw.Stop();
+            Console.WriteLine($"Decompressed by {sw.ElapsedMilliseconds} milliseconds");
         }
     }
 }
