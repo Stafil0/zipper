@@ -1,11 +1,16 @@
-﻿using Zipper.Domain.Compression;
+﻿using System.Collections.Generic;
+using System.IO;
+using Zipper.Domain.Compression;
+using Zipper.Domain.Data;
 
 namespace Zipper.Domain.Pipeline.Compression
 {
-    public interface ICompressionPipeline<TReadIn, TReadOut, TWriteIn, TWriteOut> : IPipeline<TReadIn, TReadOut, TWriteIn, TWriteOut>
+    public interface ICompressionPipeline :
+        IReaderPipeline<Stream, IEnumerable<Blob>>,
+        IWriterPipeline<Stream, Blob>
     {
-        void Compress(TReadIn input, TWriteIn output, ICompressor compressor);
+        void Compress(Stream input, Stream output, ICompressor compressor);
 
-        void Decompress(TWriteIn input, TWriteIn output, IDecompressor decompressor);
+        void Decompress(Stream input, Stream output, IDecompressor decompressor);
     }
 }

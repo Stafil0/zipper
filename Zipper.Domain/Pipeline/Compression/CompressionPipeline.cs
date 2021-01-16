@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Zipper.Domain.BoundedBuffer;
 using Zipper.Domain.Collections;
 using Zipper.Domain.Compression;
 using Zipper.Domain.Data;
@@ -12,9 +13,7 @@ using Zipper.Domain.Extensions;
 
 namespace Zipper.Domain.Pipeline.Compression
 {
-    public class CompressionPipeline :
-        ICompressionPipeline<Stream, IEnumerable<Blob>, Stream, Blob>,
-        IDisposable
+    public class CompressionPipeline : ICompressionPipeline, IDisposable
     {
         private Thread _reader;
 
@@ -40,9 +39,9 @@ namespace Zipper.Domain.Pipeline.Compression
 
         private AggregateException Exception => _exceptions.Any() ? new AggregateException(_exceptions) : null;
 
-        public event IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>.OnProgressHandler OnRead;
+        public event IReaderPipeline<Stream, IEnumerable<Blob>>.OnProgressHandler OnRead;
 
-        public event IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>.OnProgressHandler OnWrite;
+        public event IWriterPipeline<Stream, Blob>.OnProgressHandler OnWrite;
 
         public bool IsReading => _reader != null && _reader.IsAlive;
 
@@ -198,17 +197,17 @@ namespace Zipper.Domain.Pipeline.Compression
             _exceptions.Clear();
         }
 
-        IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>
-            .Reader(IReader<Stream, IEnumerable<Blob>> input) => Reader(input);
+        IReaderPipeline<Stream, IEnumerable<Blob>> IReaderPipeline<Stream, IEnumerable<Blob>>.Reader(IReader<Stream, IEnumerable<Blob>> input) =>
+            Reader(input);
+
+        IWriterPipeline<Stream, Blob> IWriterPipeline<Stream, Blob>.Writer(IWriter<Stream, Blob> input) =>
+            Writer(input);
 
         public CompressionPipeline Reader(IReader<Stream, IEnumerable<Blob>> input)
         {
             _inputReader = input;
             return this;
         }
-
-        IPipeline<Stream, IEnumerable<Blob>, Stream, Blob> IPipeline<Stream, IEnumerable<Blob>, Stream, Blob>
-            .Writer(IWriter<Stream, Blob> input) => Writer(input);
 
         public CompressionPipeline Writer(IWriter<Stream, Blob> output)
         {

@@ -1,4 +1,4 @@
-﻿namespace Zipper.Domain.Pipeline
+﻿namespace Zipper.Domain.BoundedBuffer
 {
     public interface IWriter<in TInput, in TData>
     {
