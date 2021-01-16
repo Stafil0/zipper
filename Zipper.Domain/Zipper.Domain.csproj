@@ -39,29 +39,25 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="BoundedBuffer\Blobs\BlobReader.cs" />
-        <Compile Include="BoundedBuffer\Blobs\BlobWriter.cs" />
-        <Compile Include="BoundedBuffer\File\FileStreamReader.cs" />
-        <Compile Include="BoundedBuffer\File\FileStreamWriter.cs" />
-        <Compile Include="BoundedBuffer\IReader.cs" />
-        <Compile Include="BoundedBuffer\IWriter.cs" />
+        <Compile Include="Models\Batch.cs" />
+        <Compile Include="Models\BatchComparer.cs" />
+        <Compile Include="Pipeline\Batch\BatchStreamReader.cs" />
+        <Compile Include="Pipeline\Batch\BatchStreamWriter.cs" />
         <Compile Include="Collections\BlockingPriorityQueue.cs" />
         <Compile Include="Collections\IQueue.cs" />
-        <Compile Include="Compression\GZip\GzipCompressor.cs" />
-        <Compile Include="Compression\GZip\GzipDecompressor.cs" />
-        <Compile Include="Compression\ICompressor.cs" />
-        <Compile Include="Compression\IDecompressor.cs" />
-        <Compile Include="Data\Blob.cs" />
-        <Compile Include="Data\BlobComparer.cs" />
+        <Compile Include="Compression\GZipCompressor.cs" />
+        <Compile Include="Compression\GzipDecompressor.cs" />
         <Compile Include="Exceptions\InvalidCompressionFormatException.cs" />
         <Compile Include="Extensions\SizeExtensions.cs" />
         <Compile Include="Lockers\ReadLockCookie.cs" />
         <Compile Include="Lockers\WriteLockCookie.cs" />
-        <Compile Include="Pipeline\Compression\CompressionPipeline.cs" />
-        <Compile Include="Pipeline\Compression\ICompressionPipeline.cs" />
-        <Compile Include="Pipeline\IReaderPipeline.cs" />
-        <Compile Include="Pipeline\IWriterPipeline.cs" />
+        <Compile Include="Pipeline\File\FileStreamReader.cs" />
+        <Compile Include="Pipeline\File\FileStreamWriter.cs" />
+        <Compile Include="Pipeline\IConverter.cs" />
+        <Compile Include="Pipeline\IReader.cs" />
+        <Compile Include="Pipeline\IWriter.cs" />
         <Compile Include="Pipeline\OnProgressEventArgs.cs" />
+        <Compile Include="Pipeline\Stream\StreamPipeline.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

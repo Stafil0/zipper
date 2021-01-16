@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace Zipper.Domain.Data
+namespace Zipper.Domain.Models
 {
-    public class BlobComparer : IComparer<Blob>
+    public class BatchComparer : IComparer<Batch>
     {
-        public int Compare(Blob x, Blob y)
+        public int Compare(Batch x, Batch y)
         {
             if (ReferenceEquals(x, y))
                 return 0;

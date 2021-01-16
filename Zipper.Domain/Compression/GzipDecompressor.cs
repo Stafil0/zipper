@@ -1,13 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using Zipper.Domain.Exceptions;
+using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.Compression.GZip
+namespace Zipper.Domain.Compression
 {
-    public class GzipDecompressor : IDecompressor
+    public class GzipDecompressor : IConverter<byte[], byte[]>
     {
-        public byte[] Decompress(byte[] data)
+        public byte[] Convert(byte[] data)
         {
             if (data == null || data.Length == 0)
                 return data;

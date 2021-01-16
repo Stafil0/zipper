@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using Zipper.Domain.Data;
-using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.BoundedBuffer.Blobs
+namespace Zipper.Domain.Pipeline.Batch
 {
-    public class BlobReader : IReader<System.IO.Stream, IEnumerable<Blob>>
+    public class BatchStreamReader : IReader<System.IO.Stream, IEnumerable<byte[]>>
     {
-        public IEnumerable<Blob> Read(System.IO.Stream input)
+        public IEnumerable<byte[]> Read(System.IO.Stream input)
         {
-            var offset = 0;
             while (TryRead(input, out var buffer))
             {
-                yield return new Blob { Offset = offset++, Buffer = buffer };
+                yield return buffer;
             }
         }
 

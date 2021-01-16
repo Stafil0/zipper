@@ -25,8 +25,8 @@ namespace Zipper.CLI
         [Option('t', "threads", Default = 16, HelpText = "Worker threads count.")]
         public int ThreadsCount { get; set; }
 
-        [Option('m', "max", Default = 16, HelpText = "Max working blobs count.")]
-        public int MaxBlobs { get; set; }
+        [Option('l', "limit", Default = 16, HelpText = "Max work limit.")]
+        public int WorkLimit { get; set; }
 
         [Option('v', "verbose", Default = false, HelpText = "Prints all messages to standard output.")]
         public bool Verbose { get; set; }

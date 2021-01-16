@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using Zipper.Domain.Data;
-using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.BoundedBuffer.File
+namespace Zipper.Domain.Pipeline.File
 {
-    public class FileStreamReader : IReader<Stream, IEnumerable<Blob>>
+    public class FileStreamReader : IReader<System.IO.Stream, IEnumerable<byte[]>>
     {
         private readonly int _bufferSize;
 
-        public IEnumerable<Blob> Read(Stream input)
+        public IEnumerable<byte[]> Read(System.IO.Stream input)
         {
             var offset = 0;
             var buffer = new byte[_bufferSize];
@@ -21,7 +18,7 @@ namespace Zipper.Domain.BoundedBuffer.File
                 var blob = new byte[read];
                 Array.Copy(buffer, blob, read);
 
-                yield return new Blob { Offset = offset++, Buffer = blob };
+                yield return blob;
             }
         }
 

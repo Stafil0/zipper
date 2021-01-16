@@ -1,6 +1,6 @@
-﻿namespace Zipper.Domain.Data
+﻿namespace Zipper.Domain.Models
 {
-    public class Blob
+    public class Batch
     {
         public int Offset { get; set; }
 

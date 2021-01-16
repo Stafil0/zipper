@@ -2,12 +2,12 @@
 using System.IO;
 using System.Linq;
 using CommandLine;
-using Zipper.Domain.BoundedBuffer.Blobs;
-using Zipper.Domain.BoundedBuffer.File;
-using Zipper.Domain.Compression.GZip;
+using Zipper.Domain.Compression;
 using Zipper.Domain.Extensions;
 using Zipper.Domain.Pipeline;
-using Zipper.Domain.Pipeline.Compression;
+using Zipper.Domain.Pipeline.Batch;
+using Zipper.Domain.Pipeline.File;
+using Zipper.Domain.Pipeline.Stream;
 
 namespace Zipper.CLI
 {
@@ -19,20 +19,19 @@ namespace Zipper.CLI
             {
                 using (var inputStream = new FileStream(options.InputFile, FileMode.Open))
                 using (var outputStream = new FileStream(options.OutputFile, FileMode.Create))
-                using (var compressor = new CompressionPipeline(options.ThreadsCount, options.MaxBlobs))
+                using (var pipeline = new StreamPipeline(options.ThreadsCount, options.WorkLimit))
                 {
                     if (options.Verbose)
                     {
-                        compressor.OnRead += (sender, args) => PrintReadProgress(inputStream.Length, args);
-                        compressor.OnWrite += (sender, args) => PrintCompressionLevel(inputStream.Length, args);
+                        pipeline.OnRead += (sender, args) => PrintReadProgress(inputStream.Length, args);
+                        pipeline.OnWrite += (sender, args) => PrintCompressionLevel(inputStream.Length, args);
                     }
 
-                    compressor
+                    pipeline
                         .Reader(new FileStreamReader(options.BufferSize))
-                        .Writer(new BlobWriter())
-                        .Compress(inputStream, outputStream, new GzipCompressor());
-
-                    compressor.ThrowIfException();
+                        .Writer(new BatchStreamWriter())
+                        .Converter(new GzipCompressor())
+                        .Proceed(inputStream, outputStream);
                 }
             }
             catch (AggregateException e)
@@ -56,20 +55,19 @@ namespace Zipper.CLI
             {
                 using (var inputStream = new FileStream(options.InputFile, FileMode.Open))
                 using (var outputStream = new FileStream(options.OutputFile, FileMode.Create))
-                using (var compressor = new CompressionPipeline(options.ThreadsCount, options.MaxBlobs))
+                using (var pipeline = new StreamPipeline(options.ThreadsCount, options.WorkLimit))
                 {
                     if (options.Verbose)
                     {
-                        compressor.OnRead += (sender, args) => PrintReadProgress(inputStream.Length, args);
-                        compressor.OnWrite += (sender, args) => PrintDecompressionSize(args);
+                        pipeline.OnRead += (sender, args) => PrintReadProgress(inputStream.Length, args);
+                        pipeline.OnWrite += (sender, args) => PrintDecompressionSize(args);
                     }
 
-                    compressor
-                        .Reader(new BlobReader())
+                    pipeline
+                        .Reader(new BatchStreamReader())
                         .Writer(new FileStreamWriter())
-                        .Decompress(inputStream, outputStream, new GzipDecompressor());
-                    
-                    compressor.ThrowIfException();
+                        .Converter(new GzipDecompressor())
+                        .Proceed(inputStream, outputStream);
                 }
             }
             catch (AggregateException e)
@@ -98,7 +96,7 @@ namespace Zipper.CLI
             var compression = original / (float) args.Progress;
             Console.WriteLine($"{args.Message}\tCompression level: {compression:0.##}%");
         }
-        
+
         private static void PrintDecompressionSize(OnProgressEventArgs args)
         {
             Console.WriteLine($"Decompressed file size:\t{SizeExtensions.GetReadableSize(args.Progress)}");
