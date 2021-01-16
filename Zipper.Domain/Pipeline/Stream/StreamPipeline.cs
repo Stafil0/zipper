@@ -232,6 +232,12 @@ namespace Zipper.Domain.Pipeline.Stream
 
         public StreamPipeline(int threadsCount = 1, int? workLimit = null)
         {
+            if (threadsCount <= 0)
+                throw new ArgumentException("Threads count can't be less, than 1.");
+
+            if (workLimit <= 0)
+                throw new ArgumentException("Work limit can't be less, than 0.");
+
             _workLimit = workLimit;
             _reader = new Thread(ReadStream);
             _writer = new Thread(WriteOutput);
