@@ -17,11 +17,11 @@ zipper
 Читатель читает поток, есть еще кучка воркеров для обработки того, что считано, писатель пишет в выходной поток.
 
 Формат получился самописный, GZip использовался для сжатия и рапсаковки данных.
-Хранится всё в простеньких Blob'ах. 
+Хранится всё в простеньких Batch'ах. 
 
-При архивации сначала пишется размер упакованного Blob'а, а потом сам Blob - запакованные данные.
+При архивации сначала пишется размер упакованного Batch'а, а потом сам Batch - запакованные данные.
 
-Разархивация аналогично-зеркальна - сначала читается размер Blob'а, а потом считываются данные.
+Разархивация аналогично-зеркальна - сначала читается размер Batch'а, а потом считываются данные.
 
 ### CLI
 
@@ -37,51 +37,48 @@ zipper
 -- | -- | --
 `-b` | `--buffer` | BufferSize - только при упаковке, размер читаемого блока из потока.
 `-t` | `--threads` | ThreadsCount - количество тредов, которые будут упаковывать/распаковывать прочитанные блоки.
-`-m` | `--max` | MaxBlobs - максимальное количество Blob'ов, которые будут считаны. Если число достигнуто, то читатель просто будет ждать, пока их не обработают.
+`-l` | `--limit` | WorkLimit - максимальное количество Batch'ей, которые будут считаны. Если число достигнуто, то читатель просто будет ждать, пока их не обработают.
 `-v` | `--verbose` | Verbose - пишем инфу о упаковке/распаковке в консоль.
 
 ### API
 
-Основным классом является `CompressionPipeline`, при инициализации которого можно указать количество рабочих потоков и максимальное количество обрабатываемых элементов.
+Основным классом является `StreamPipeline`, при инициализации которого можно указать количество рабочих потоков и максимальное количество обрабатываемых элементов.
 
-`CompressionPipeline` предоставляет fluent-like API для настройки. Обязательно указать `Reader` и `Writer` - классы, реализующие `IReader` и `IWriter` для чтения и записи даннных соотвественно. Также есть возможность подписаться на события чтения и записи блоков.
+`StreamPipeline` предоставляет fluent-like API для настройки. Обязательно указать `Reader` и `Writer` - классы, реализующие `IReader` и `IWriter` для чтения и записи даннных соотвественно. Также есть возможность подписаться на события чтения и записи блоков. Для более гибкого контроля можно передать `Converter`, который будет использоваться для обработки данных, например, архивации или разархивации.
 
-Данные должны быть прочитаны и записаны одним и тем же типом reader/writer, например, если для записи при архивации использовался `BlobWriter`, то для разархивации должен использоваться `BlobReader` и *vice versa*.
+Данные должны быть прочитаны и записаны одним и тем же типом reader/writer, например, если для записи использовался `BatchStreamWriter`, то для разархивации должен использоваться `BatchStreamReader` и *vice versa*.
 
-`CompressionPipeline` сам по себе не бросает `Exception` при работе, так как работает в нескольких отдельных потоках. Для выброса `Exception` необходимо вызвать метод `ThrowIfException()` после работы.
-
-Пример:
-```C#
-// Упаковка.
+Упаковка:
+```csharp
 using(var inputStream = new FileStream("input.file", FileMode.Open))
 using(var outputStream = new FileStream("compressed.file", FileMode.Create))
-using(var compressor = new CompressionPipeline(16, 16))
+using(var pipeline = new StreamPipeline(16, 16))
 {
-	compressor.OnRead += (sender, args) => Console.WriteLine(args.Message);
-	compressor.OnWrite += (sender, args) => Console.WriteLine(args.Message);
+  pipeline.OnRead += (sender, args) => Console.WriteLine(args.Message);
+  pipeline.OnWrite += (sender, args) => Console.WriteLine(args.Message);
 
-	compressor
-	    .Reader(new FileStreamReader(1024 * 1024))
-	    .Writer(new BlobWriter())
-	    .Compress(inputStream, outputStream, new GzipCompressor());
-
-	compressor.ThrowIfException();
+  pipeline
+    .Reader(new FileStreamReader(1024 * 1024))
+    .Writer(new BatchStreamWriter())
+    .Converter(new GzipCompressor())
+    .Proceed(inputStream, outputStream);
 }
+```
 
-// Распаковка.
+Распаковка:
+```csharp
 using(var inputStream = new FileStream("compressed.file", FileMode.Open))
 using(var outputStream = new FileStream("decompressed.file", FileMode.Create))
-using(var compressor = new CompressionPipeline(16, 16))
+using(var pipeline = new StreamPipeline(16, 16))
 {
-	compressor.OnRead += (sender, args) => Console.WriteLine(args.Message);
-	compressor.OnWrite += (sender, args) => Console.WriteLine(args.Message);
+  pipeline.OnRead += (sender, args) => Console.WriteLine(args.Message);
+  pipeline.OnWrite += (sender, args) => Console.WriteLine(args.Message);
 
-	compressor
-	    .Reader(new BlobReader())
-	    .Writer(new FileStreamWriter())
-	    .Decompress(inputStream, outputStream, new GzipDecompressor());
-
-	compressor.ThrowIfException();
+  pipeline
+    .Reader(new BatchStreamReader())
+    .Writer(new FileStreamWriter())
+    .Converter(new GzipDecompressor())
+    .Proceed(inputStream, outputStream);
 }
 ```
 
