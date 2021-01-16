@@ -25,7 +25,7 @@ namespace Zipper.Domain.Compression
             }
             catch (InvalidDataException e)
             {
-                throw new InvalidCompressionFormatException(e);
+                throw new InvalidFormatException(e);
             }
         }
     }

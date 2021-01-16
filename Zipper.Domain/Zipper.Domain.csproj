@@ -47,7 +47,7 @@
         <Compile Include="Collections\IQueue.cs" />
         <Compile Include="Compression\GZipCompressor.cs" />
         <Compile Include="Compression\GzipDecompressor.cs" />
-        <Compile Include="Exceptions\InvalidCompressionFormatException.cs" />
+        <Compile Include="Exceptions\InvalidFormatException.cs" />
         <Compile Include="Extensions\SizeExtensions.cs" />
         <Compile Include="Lockers\ReadLockCookie.cs" />
         <Compile Include="Lockers\WriteLockCookie.cs" />
