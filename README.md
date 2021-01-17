@@ -1,6 +1,6 @@
 zipper <br> [![Build status](https://ci.appveyor.com/api/projects/status/d1jc4jon83idqadj/branch/main?svg=true)](https://ci.appveyor.com/project/Stafil0/zipper/branch/main) [![codecov](https://codecov.io/gh/Stafil0/zipper/branch/main/graph/badge.svg?token=QeR7lybjK1)](https://codecov.io/gh/Stafil0/zipper)
 =============
-###### *Trying to create file archiver by myself.*
+###### *Trying to create file archiver (kinda) by myself.*
 
 ### TL;DR
 
