@@ -4,8 +4,16 @@ using Zipper.Domain.Exceptions;
 
 namespace Zipper.Domain.Pipeline.GZip
 {
+    /// <summary>
+    /// GZip data decompressor.
+    /// </summary>
     public class GZipBatchDecompressor : IConverter<byte[], byte[]>
     {
+        /// <summary>
+        /// Decompresses data to byte array using gzip.
+        /// </summary>
+        /// <param name="data">Compressed data.</param>
+        /// <returns>Decompressed data.</returns>
         public byte[] Convert(byte[] data)
         {
             if (data == null || data.Length == 0)

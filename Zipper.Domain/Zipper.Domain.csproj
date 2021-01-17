@@ -57,7 +57,7 @@
         <Compile Include="Pipeline\IConverter.cs" />
         <Compile Include="Pipeline\IReader.cs" />
         <Compile Include="Pipeline\IWriter.cs" />
-        <Compile Include="Pipeline\OnProgressEventArgs.cs" />
+        <Compile Include="Pipeline\OnProgressHandler.cs" />
         <Compile Include="Pipeline\Stream\StreamPipeline.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>

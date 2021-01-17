@@ -10,50 +10,116 @@ using Zipper.Domain.Models;
 
 namespace Zipper.Domain.Pipeline.Stream
 {
+    /// <summary>
+    /// Pipeline to read/write/convert streams.
+    /// </summary>
     public class StreamPipeline : IDisposable
     {
+        /// <summary>
+        /// Reader thread.
+        /// </summary>
         private Thread _reader;
 
+        /// <summary>
+        /// Writer thread.
+        /// </summary>
         private Thread _writer;
 
+        /// <summary>
+        /// Current offset for writing batches.
+        /// </summary>
         private int _offset;
 
+        /// <summary>
+        /// Maximum work limit for workers threads.
+        /// </summary>
         private readonly int? _workLimit;
 
+        /// <summary>
+        /// Workers threads count.
+        /// </summary>
         private readonly int _threads;
 
+        /// <summary>
+        /// Collection of workers threads.
+        /// </summary>
         private List<Thread> _workers = new List<Thread>();
 
-        private ConcurrentBag<Models.Batch> _inputs = new ConcurrentBag<Models.Batch>();
+        /// <summary>
+        /// Read data to proceed.
+        /// </summary>
+        private ConcurrentBag<Batch> _inputs = new ConcurrentBag<Batch>();
 
-        private IQueue<Models.Batch> _outputs = new BlockingPriorityQueue<Models.Batch>(new BatchComparer());
+        /// <summary>
+        /// Proceeded data for output.
+        /// </summary>
+        private IQueue<Batch> _outputs = new BlockingPriorityQueue<Batch>(new BatchComparer());
 
+        /// <summary>
+        /// Reader instance.
+        /// </summary>
         private IReader<System.IO.Stream, IEnumerable<byte[]>> _inputReader;
 
+        /// <summary>
+        /// Writer instance.
+        /// </summary>
         private IWriter<System.IO.Stream, byte[]> _outputWriter;
 
+        /// <summary>
+        /// Converter instance.
+        /// </summary>
         private IConverter<byte[], byte[]> _converter;
 
+        /// <summary>
+        /// Event on read action.
+        /// </summary>
         public event OnProgressHandler OnRead;
 
+        /// <summary>
+        /// Event on write action.
+        /// </summary>
         public event OnProgressHandler OnWrite;
 
-        public delegate void OnProgressHandler(object sender, OnProgressEventArgs args);
-
+        /// <summary>
+        /// Collection of occured exceptions during pipeline execution.
+        /// </summary>
         private readonly List<Exception> _exceptions = new List<Exception>();
 
+        /// <summary>
+        /// Exception generator.
+        /// Returns exception if any occured, else null.
+        /// </summary>
         private AggregateException Exception => _exceptions.Any() ? new AggregateException(_exceptions) : null;
         
+        /// <summary>
+        /// Is reading thread alive and working.
+        /// </summary>
         public bool IsReading => _reader != null && _reader.IsAlive;
 
+        /// <summary>
+        /// Is writing thread alive and working.
+        /// </summary>
         public bool IsWriting => _writer != null && _writer.IsAlive;
 
+        /// <summary>
+        /// Is workers thread alive and working.
+        /// </summary>
         public bool IsWorking => _workers.Any(x => x.IsAlive);
 
+        /// <summary>
+        /// Is any errors during pipeline execution.
+        /// </summary>
         public bool IsError => _exceptions.Any();
 
+        /// <summary>
+        /// Is pipeline set up correctly.
+        /// </summary>
         private bool IsValid => _inputReader != null && _outputWriter != null;
 
+        /// <summary>
+        /// Try catch and store any exceptions during action.
+        /// </summary>
+        /// <param name="action">Action.</param>
         private void TryCatch(Action action)
         {
             try
@@ -66,6 +132,10 @@ namespace Zipper.Domain.Pipeline.Stream
             }
         }
 
+        /// <summary>
+        /// Throws exceptions if any happen during execution.
+        /// </summary>
+        /// <exception cref="AggregateException">Throws exception that happen during execution.</exception>
         private void ThrowIfException()
         {
             var exception = Exception;
@@ -73,6 +143,10 @@ namespace Zipper.Domain.Pipeline.Stream
                 throw exception;
         }
 
+        /// <summary>
+        /// Reads data from input stream.
+        /// </summary>
+        /// <param name="input">Input stream.</param>
         private void ReadStream(System.IO.Stream input) => TryCatch(() =>
         {
             var size = 0;
@@ -97,7 +171,7 @@ namespace Zipper.Domain.Pipeline.Stream
                 if (current != null)
                 {
                     Debug.WriteLine($"Reader:\tGot batch ({offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                    _inputs.Add(new Models.Batch { Offset = offset++, Buffer = current });
+                    _inputs.Add(new Batch { Offset = offset++, Buffer = current });
                     size += current.Length;
 
                     OnRead?.Invoke(this, new OnProgressEventArgs(work, size, $"Read:\t{SizeExtensions.GetReadableSize(size)}."));
@@ -107,6 +181,9 @@ namespace Zipper.Domain.Pipeline.Stream
             }
         });
 
+        /// <summary>
+        /// Proceed data from reader.
+        /// </summary>
         private void ProceedInput() => TryCatch(() =>
         {
             Debug.WriteLine($"Worker:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
@@ -130,6 +207,10 @@ namespace Zipper.Domain.Pipeline.Stream
             } while (!IsError && (IsReading || _inputs.Any()));
         });
 
+        /// <summary>
+        /// Proceed data from converter to output stream.
+        /// </summary>
+        /// <param name="output">Output stream.</param>
         private void WriteOutput(System.IO.Stream output) => TryCatch(() =>
         {
             var spinner = new SpinWait();
@@ -164,24 +245,45 @@ namespace Zipper.Domain.Pipeline.Stream
             }
         });
 
-        public StreamPipeline Reader(IReader<System.IO.Stream, IEnumerable<byte[]>> input)
+        /// <summary>
+        /// Set's up reader.
+        /// </summary>
+        /// <param name="reader">Reader.</param>
+        /// <returns>Pipeline instance.</returns>
+        public StreamPipeline Reader(IReader<System.IO.Stream, IEnumerable<byte[]>> reader)
         {
-            _inputReader = input;
+            _inputReader = reader;
             return this;
         }
 
-        public StreamPipeline Writer(IWriter<System.IO.Stream, byte[]> output)
+        /// <summary>
+        /// Set's up writer.
+        /// </summary>
+        /// <param name="writer">Writer.</param>
+        /// <returns>Pipeline instance.</returns>
+        public StreamPipeline Writer(IWriter<System.IO.Stream, byte[]> writer)
         {
-            _outputWriter = output;
+            _outputWriter = writer;
             return this;
         }
 
+        /// <summary>
+        /// Set's up converter.
+        /// </summary>
+        /// <param name="converter">Converter.</param>
+        /// <returns>Pipeline instance.</returns>
         public StreamPipeline Converter(IConverter<byte[], byte[]> converter)
         {
             _converter = converter;
             return this;
         }
 
+        /// <summary>
+        /// Proceed streams.
+        /// </summary>
+        /// <param name="input">Input stream.</param>
+        /// <param name="output">Output stream.</param>
+        /// <exception cref="ArgumentException">Throws exception if reader/writer not set or streams are empty.</exception>
         public void Proceed(System.IO.Stream input, System.IO.Stream output)
         {
             if (input == null)
@@ -215,8 +317,15 @@ namespace Zipper.Domain.Pipeline.Stream
             }
         }
 
+        /// <summary>
+        /// Dispose managed resources.
+        /// </summary>
         public void Dispose() => Dispose(true);
 
+        /// <summary>
+        /// Dispose managed resources.
+        /// </summary>
+        /// <param name="disposing">Is object disposing.</param>
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -231,11 +340,18 @@ namespace Zipper.Domain.Pipeline.Stream
                 _writer = null;
             }
 
-            _inputs = new ConcurrentBag<Models.Batch>();
-            _outputs = new BlockingPriorityQueue<Models.Batch>();
+            _inputs = new ConcurrentBag<Batch>();
+            _outputs = new BlockingPriorityQueue<Batch>();
             _exceptions.Clear();
+            _offset = 0;
         }
 
+        /// <summary>
+        /// Initialize instance of pipeline.
+        /// </summary>
+        /// <param name="threadsCount">Threads count for data conversion.</param>
+        /// <param name="workLimit">Reader work limit. Reader will wait if it produced more data than workers/writer can proceed.</param>
+        /// <exception cref="ArgumentException">Throws exception if threads count less than 1 or work limit less than 0.</exception>
         public StreamPipeline(int threadsCount = 1, int? workLimit = null)
         {
             if (threadsCount <= 0)
@@ -246,6 +362,7 @@ namespace Zipper.Domain.Pipeline.Stream
 
             _workLimit = workLimit;
             _threads = threadsCount;
+            _offset = 0;
         }
     }
 }
