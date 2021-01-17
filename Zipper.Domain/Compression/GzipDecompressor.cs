@@ -14,13 +14,12 @@ namespace Zipper.Domain.Compression
 
             try
             {
+                using var input = new MemoryStream(data);
                 using var output = new MemoryStream();
-                using (var input = new MemoryStream(data))
-                using (var zip = new GZipStream(input, CompressionMode.Decompress))
-                {
-                    zip.CopyTo(output);
-                }
-                
+                using var zip = new GZipStream(input, CompressionMode.Decompress);
+
+                zip.CopyTo(output);
+
                 return output.ToArray();
             }
             catch (InvalidDataException e)

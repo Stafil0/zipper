@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.IO.Compression;
-using Zipper.Domain.Exceptions;
 using Zipper.Domain.Pipeline;
 
 namespace Zipper.Domain.Compression
@@ -12,18 +11,11 @@ namespace Zipper.Domain.Compression
             if (data == null || data.Length == 0)
                 return data;
 
-            try
-            {
-                using var output = new MemoryStream();
-                using (var zip = new GZipStream(output, CompressionMode.Compress))
-                    zip.Write(data, 0, data.Length);
+            using var output = new MemoryStream();
+            using (var zip = new GZipStream(output, CompressionMode.Compress))
+                zip.Write(data, 0, data.Length);
 
-                return output.ToArray();
-            }
-            catch (InvalidDataException e)
-            {
-                throw new InvalidFormatException(e);
-            }
+            return output.ToArray();
         }
     }
 }
