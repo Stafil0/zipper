@@ -2,7 +2,7 @@
 using Xunit;
 using Zipper.Domain.Collections;
 
-namespace Zipper.Tests.Collections
+namespace Zipper.Tests.CollectionsTests
 {
     public class BlockingPriorityQueueTests
     {

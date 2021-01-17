@@ -1,4 +1,4 @@
-﻿namespace Zipper.Tests.Pipeline.Stream
+﻿namespace Zipper.Tests.PipelineTests.Stream
 {
     public class StreamPipelineTests
     {

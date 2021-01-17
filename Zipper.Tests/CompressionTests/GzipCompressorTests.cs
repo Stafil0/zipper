@@ -4,7 +4,7 @@ using System.IO.Compression;
 using Xunit;
 using Zipper.Domain.Compression;
 
-namespace Zipper.Tests.Compression
+namespace Zipper.Tests.CompressionTests
 {
     public class GzipCompressorTests
     {

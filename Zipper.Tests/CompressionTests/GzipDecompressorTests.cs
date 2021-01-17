@@ -5,7 +5,7 @@ using Xunit;
 using Zipper.Domain.Compression;
 using Zipper.Domain.Exceptions;
 
-namespace Zipper.Tests.Compression
+namespace Zipper.Tests.CompressionTests
 {
     public class GzipDecompressorTests
     {        

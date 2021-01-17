@@ -1,4 +1,4 @@
-﻿namespace Zipper.Tests.Pipeline.Batch
+﻿namespace Zipper.Tests.PipelineTests.Batch
 {
     public class BatchStreamWriterTests
     {

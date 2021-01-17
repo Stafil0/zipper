@@ -1,4 +1,4 @@
-﻿namespace Zipper.Tests.Pipeline.File
+﻿namespace Zipper.Tests.PipelineTests.File
 {
     public class FileStreamReaderTests
     {
