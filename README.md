@@ -17,11 +17,11 @@ zipper
 Читатель читает поток, есть еще кучка воркеров для обработки того, что считано, писатель пишет в выходной поток.
 
 Формат получился самописный, GZip использовался для сжатия и рапсаковки данных.
-Хранится всё в простеньких Batch'ах. 
+Хранится всё в простеньких `Batch`'ах. 
 
-При архивации сначала пишется размер упакованного Batch'а, а потом сам Batch - запакованные данные.
+При архивации сначала пишется размер упакованного `Batch`'а, а потом сам `Batch` - запакованные данные.
 
-Разархивация аналогично-зеркальна - сначала читается размер Batch'а, а потом считываются данные.
+Разархивация аналогично-зеркальна - сначала читается размер `Batch`'а, а потом считываются данные.
 
 ### CLI
 
@@ -46,7 +46,7 @@ zipper
 
 `StreamPipeline` предоставляет fluent-like API для настройки. Обязательно указать `Reader` и `Writer` - классы, реализующие `IReader` и `IWriter` для чтения и записи даннных соотвественно. Также есть возможность подписаться на события чтения и записи блоков. Для более гибкого контроля можно передать `Converter`, который будет использоваться для обработки данных, например, архивации или разархивации.
 
-Данные должны быть прочитаны и записаны одним и тем же типом reader/writer, например, если для записи использовался `BatchStreamWriter`, то для разархивации должен использоваться `BatchStreamReader` и *vice versa*.
+Данные должны быть прочитаны и записаны одним и тем же типом reader/writer/converter, например, если использовался `GZipBatchCompressor`, то для записи должен использоваться `GZipBatchWriter`, а для разархивации - `GZipBatchReader` и `GZipBatchDecompressor`.
 
 Упаковка:
 ```csharp
@@ -58,9 +58,9 @@ using(var pipeline = new StreamPipeline(16, 16))
   pipeline.OnWrite += (sender, args) => Console.WriteLine(args.Message);
 
   pipeline
-    .Reader(new FileStreamReader(1024 * 1024))
-    .Writer(new BatchStreamWriter())
-    .Converter(new GzipCompressor())
+    .Reader(new ByteStreamReader(1024 * 1024))
+    .Writer(new GZipBatchWriter())
+    .Converter(new GZipBatchCompressor())
     .Proceed(inputStream, outputStream);
 }
 ```
@@ -75,9 +75,9 @@ using(var pipeline = new StreamPipeline(16, 16))
   pipeline.OnWrite += (sender, args) => Console.WriteLine(args.Message);
 
   pipeline
-    .Reader(new BatchStreamReader())
-    .Writer(new FileStreamWriter())
-    .Converter(new GzipDecompressor())
+    .Reader(new GZipBatchReader())
+    .Writer(new ByteStreamWriter())
+    .Converter(new GZipBatchDecompressor())
     .Proceed(inputStream, outputStream);
 }
 ```
@@ -90,5 +90,5 @@ using(var pipeline = new StreamPipeline(16, 16))
 - [x] filestream reader/writer;
 - [x] очередь с приоритетом для писателя;
 - [x] CLI;
-- [ ] кучка тестов;
+- [x] кучка тестов;
 - [ ] кучка зеленых тестов.

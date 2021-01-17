@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace Zipper.Domain.Collections
 {
-    internal interface IQueue<T> : IEnumerable<T> 
+    internal interface IQueue<T> : ICollection<T>
     {
         T Peek();
 

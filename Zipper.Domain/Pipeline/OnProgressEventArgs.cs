@@ -4,11 +4,14 @@
     {
         public string Message { get; }
         
-        public long Progress { get; }
+        public long Total { get; }
+        
+        public int Current { get; }
 
-        public OnProgressEventArgs(long progress, string message)
+        public OnProgressEventArgs(int current, long total, string message)
         {
-            Progress = progress;
+            Current = current;
+            Total = total;
             Message = message;
         }
     }

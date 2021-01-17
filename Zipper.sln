@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zipper.Domain", "Zipper.Dom
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zipper.CLI", "Zipper.CLI\Zipper.CLI.csproj", "{FF8E579D-828C-4B49-82B3-ABC8EB67A194}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zipper.Tests", "Zipper.Tests\Zipper.Tests.csproj", "{CE1F0A4E-C817-405D-881F-095B2223E5FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{FF8E579D-828C-4B49-82B3-ABC8EB67A194}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF8E579D-828C-4B49-82B3-ABC8EB67A194}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF8E579D-828C-4B49-82B3-ABC8EB67A194}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE1F0A4E-C817-405D-881F-095B2223E5FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE1F0A4E-C817-405D-881F-095B2223E5FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE1F0A4E-C817-405D-881F-095B2223E5FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE1F0A4E-C817-405D-881F-095B2223E5FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

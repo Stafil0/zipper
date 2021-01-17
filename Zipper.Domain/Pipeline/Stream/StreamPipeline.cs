@@ -20,18 +20,20 @@ namespace Zipper.Domain.Pipeline.Stream
 
         private readonly int? _workLimit;
 
-        private readonly List<Thread> _workers;
+        private readonly int _threads;
+
+        private List<Thread> _workers = new List<Thread>();
 
         private ConcurrentBag<Models.Batch> _inputs = new ConcurrentBag<Models.Batch>();
 
-        private BlockingPriorityQueue<Models.Batch> _outputs = new BlockingPriorityQueue<Models.Batch>(new BatchComparer());
+        private IQueue<Models.Batch> _outputs = new BlockingPriorityQueue<Models.Batch>(new BatchComparer());
 
         private IReader<System.IO.Stream, IEnumerable<byte[]>> _inputReader;
 
         private IWriter<System.IO.Stream, byte[]> _outputWriter;
-        
+
         private IConverter<byte[], byte[]> _converter;
-        
+
         public event OnProgressHandler OnRead;
 
         public event OnProgressHandler OnWrite;
@@ -71,11 +73,8 @@ namespace Zipper.Domain.Pipeline.Stream
                 throw exception;
         }
 
-        private void ReadStream(object obj) => TryCatch(() =>
+        private void ReadStream(System.IO.Stream input) => TryCatch(() =>
         {
-            if (!(obj is System.IO.Stream input))
-                throw new ArgumentException(nameof(obj));
-
             var size = 0;
             var offset = 0;
             var spinner = new SpinWait();
@@ -86,7 +85,8 @@ namespace Zipper.Domain.Pipeline.Stream
             var next = enumerator.MoveNext();
             while (!IsError && next)
             {
-                if (_workLimit.HasValue && _inputs.Count >= _workLimit)
+                var work = _inputs.Count;
+                if (work >= _workLimit)
                 {
                     Debug.WriteLine($"Reader:\tToo many batchs in work ({_inputs.Count}), spinning while >= {_workLimit}. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
                     spinner.SpinOnce();
@@ -100,18 +100,17 @@ namespace Zipper.Domain.Pipeline.Stream
                     _inputs.Add(new Models.Batch { Offset = offset++, Buffer = current });
                     size += current.Length;
 
-                    OnRead?.Invoke(this, new OnProgressEventArgs(size, $"Read:\t{SizeExtensions.GetReadableSize(size)}."));
+                    OnRead?.Invoke(this, new OnProgressEventArgs(work, size, $"Read:\t{SizeExtensions.GetReadableSize(size)}."));
                 }
 
                 next = enumerator.MoveNext();
             }
         });
 
-        private void ProceedInput(object obj) => TryCatch(() =>
+        private void ProceedInput() => TryCatch(() =>
         {
             Debug.WriteLine($"Worker:\tstarted. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-
-            var converter = obj as IConverter<byte[], byte[]>;
+            
             var spinner = new SpinWait();
             do
             {
@@ -124,18 +123,15 @@ namespace Zipper.Domain.Pipeline.Stream
                 }
 
                 Debug.WriteLine($"Worker:\tWorking with batch ({batch.Offset}). ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                if (converter != null)
-                    batch.Buffer = converter.Convert(batch.Buffer);
+                if (_converter != null)
+                    batch.Buffer = _converter.Convert(batch.Buffer);
 
                 _outputs.TryEnqueue(batch);
             } while (!IsError && (IsReading || _inputs.Any()));
         });
 
-        private void WriteOutput(object obj) => TryCatch(() =>
+        private void WriteOutput(System.IO.Stream output) => TryCatch(() =>
         {
-            if (!(obj is System.IO.Stream output))
-                throw new ArgumentException(nameof(obj));
-
             var spinner = new SpinWait();
             var size = 0;
 
@@ -161,7 +157,7 @@ namespace Zipper.Domain.Pipeline.Stream
                 _outputWriter.Write(output, batch.Buffer);
                 size += batch.Size;
 
-                OnWrite?.Invoke(this, new OnProgressEventArgs(size, $"Write:\t{SizeExtensions.GetReadableSize(size)}."));
+                OnWrite?.Invoke(this, new OnProgressEventArgs(_outputs.Count, size, $"Write:\t{SizeExtensions.GetReadableSize(size)}."));
                 Debug.WriteLine($"Writer:\tGot batch ({batch.Offset}), writing. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
 
                 Interlocked.Increment(ref _offset);
@@ -188,15 +184,25 @@ namespace Zipper.Domain.Pipeline.Stream
 
         public void Proceed(System.IO.Stream input, System.IO.Stream output)
         {
+            if (input == null)
+                throw new ArgumentException(nameof(input));
+            if (output == null)
+                throw new ArgumentException(nameof(output));
+            if (!IsValid)
+                throw new ArgumentException("Reader or writer is not set up.");
+
             try
             {
-                if (!IsValid)
-                    throw new ArgumentException("Reader or writer is not set up.");
-
                 Debug.WriteLine($"Compression pipeline started. ThreadId = {Thread.CurrentThread.ManagedThreadId}");
-                _reader.Start(input);
-                _workers.ForEach(t => t.Start(_converter));
-                _writer.Start(output);
+                
+                _reader = new Thread(() => ReadStream(input));
+                _reader.Start();
+                
+                _workers = Enumerable.Range(0, _threads).Select(x => new Thread(ProceedInput)).ToList();
+                _workers.ForEach(t => t.Start());
+
+                _writer = new Thread(() => WriteOutput(output));
+                _writer.Start();
 
                 SpinWait.SpinUntil(() => IsError || !(IsReading || IsWorking || IsWriting));
                 ThrowIfException();
@@ -225,9 +231,9 @@ namespace Zipper.Domain.Pipeline.Stream
                 _writer = null;
             }
 
-            _exceptions.Clear();
             _inputs = new ConcurrentBag<Models.Batch>();
             _outputs = new BlockingPriorityQueue<Models.Batch>();
+            _exceptions.Clear();
         }
 
         public StreamPipeline(int threadsCount = 1, int? workLimit = null)
@@ -239,9 +245,7 @@ namespace Zipper.Domain.Pipeline.Stream
                 throw new ArgumentException("Work limit can't be less, than 0.");
 
             _workLimit = workLimit;
-            _reader = new Thread(ReadStream);
-            _writer = new Thread(WriteOutput);
-            _workers = Enumerable.Range(0, threadsCount).Select(x => new Thread(ProceedInput)).ToList();
+            _threads = threadsCount;
         }
     }
 }

@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Zipper.Domain.Pipeline.File
+namespace Zipper.Domain.Pipeline.Byte
 {
-    public class FileStreamReader : IReader<System.IO.Stream, IEnumerable<byte[]>>
+    public class ByteStreamReader : IReader<System.IO.Stream, IEnumerable<byte[]>>
     {
         private readonly int _bufferSize;
 
         public IEnumerable<byte[]> Read(System.IO.Stream input)
         {
-            var offset = 0;
             var buffer = new byte[_bufferSize];
 
             int read;
@@ -22,8 +21,11 @@ namespace Zipper.Domain.Pipeline.File
             }
         }
 
-        public FileStreamReader(int bufferSize)
+        public ByteStreamReader(int bufferSize)
         {
+            if (bufferSize < 0)
+                throw new ArgumentException("Buffer size can't be less, than 0.");
+            
             _bufferSize = bufferSize;
         }
     }

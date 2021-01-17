@@ -1,11 +1,10 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using Zipper.Domain.Exceptions;
-using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.Compression
+namespace Zipper.Domain.Pipeline.GZip
 {
-    public class GzipCompressor : IConverter<byte[], byte[]>
+    public class GZipBatchDecompressor : IConverter<byte[], byte[]>
     {
         public byte[] Convert(byte[] data)
         {
@@ -14,9 +13,11 @@ namespace Zipper.Domain.Compression
 
             try
             {
+                using var input = new MemoryStream(data);
                 using var output = new MemoryStream();
-                using (var zip = new GZipStream(output, CompressionMode.Compress))
-                    zip.Write(data, 0, data.Length);
+                using var zip = new GZipStream(input, CompressionMode.Decompress);
+
+                zip.CopyTo(output);
 
                 return output.ToArray();
             }
