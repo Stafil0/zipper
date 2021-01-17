@@ -1,6 +1,6 @@
 zipper <br> [![Build status](https://ci.appveyor.com/api/projects/status/d1jc4jon83idqadj/branch/main?svg=true)](https://ci.appveyor.com/project/Stafil0/zipper/branch/main) [![codecov](https://codecov.io/gh/Stafil0/zipper/branch/main/graph/badge.svg?token=QeR7lybjK1)](https://codecov.io/gh/Stafil0/zipper)
 =============
-###### *Trying to create file archiver (kinda) by myself.*
+###### *Trying to create file archiver (kinda) by myself.* <br><br> *по условиями задания - при работе с потоками можно было использовать только базовые классы и объекты синхронизации<br>(Thread, Manual/AutoResetEvent, Monitor, Semaphor, Mutex)<br>и нельзя было использовать async/await, ThreadPool, BackgroundWorker, TPL.
 
 ### TL;DR
 
@@ -17,11 +17,7 @@ zipper <br> [![Build status](https://ci.appveyor.com/api/projects/status/d1jc4jo
 Читатель читает поток, есть еще кучка воркеров для обработки того, что считано, писатель пишет в выходной поток.
 
 Формат получился самописный, GZip использовался для сжатия и рапсаковки данных.
-Хранится всё в простеньких `Batch`'ах. 
-
-При архивации сначала пишется размер упакованного `Batch`'а, а потом сам `Batch` - запакованные данные.
-
-Разархивация аналогично-зеркальна - сначала читается размер `Batch`'а, а потом считываются данные.
+Хранится всё в простеньких `Batch`'ах. При архивации сначала пишется размер упакованного `Batch`'а, а потом сам `Batch` - запакованные данные. Разархивация аналогично-зеркальна - сначала читается размер `Batch`'а, а потом считываются данные.
 
 ### CLI
 
