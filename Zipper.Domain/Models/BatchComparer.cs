@@ -15,7 +15,7 @@ namespace Zipper.Domain.Models
             if (ReferenceEquals(null, x))
                 return -1;
             
-            return y.Offset.CompareTo(x.Offset);
+            return x.Offset.CompareTo(y.Offset);
         }
     }
 }

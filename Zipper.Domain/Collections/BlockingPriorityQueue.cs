@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Zipper.Domain.Lockers;
 
@@ -33,7 +35,13 @@ namespace Zipper.Domain.Collections
             }
         }
 
-        private T PeekItem() => _set.Max;
+        private T PeekItem()
+        {
+            if (!_set.Any())
+                throw new InvalidOperationException("Queue is empty.");
+
+            return _set.Min;
+        }
 
         public T Dequeue()
         {
@@ -56,7 +64,7 @@ namespace Zipper.Domain.Collections
 
         private T DequeueItem()
         {
-            var top = _set.Max;
+            var top = PeekItem();
             _set.Remove(top);
 
             return top;

@@ -24,7 +24,7 @@ namespace Zipper.Domain.Pipeline.Stream
 
         private ConcurrentBag<Models.Batch> _inputs = new ConcurrentBag<Models.Batch>();
 
-        private BlockingPriorityQueue<Models.Batch> _outputs = new BlockingPriorityQueue<Models.Batch>(new BatchComparer());
+        private IQueue<Models.Batch> _outputs = new BlockingPriorityQueue<Models.Batch>(new BatchComparer());
 
         private IReader<System.IO.Stream, IEnumerable<byte[]>> _inputReader;
 
