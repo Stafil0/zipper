@@ -86,7 +86,7 @@ namespace Zipper.Tests.Collections
             queue.TryEnqueue(value1);
             queue.TryEnqueue(value2);
             
-            Assert.False(queue.TryDequeue(out var top));
+            Assert.True(queue.TryDequeue(out var top));
             Assert.Equal(value2, top);
             foreach (var value in queue)
                 Assert.NotEqual(value2, value);
