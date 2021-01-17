@@ -52,14 +52,15 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Collections\BlockingPriorityQueueTests.cs" />
-        <Compile Include="Compression\GzipCompressorTests.cs" />
-        <Compile Include="Compression\GzipDecompressorTests.cs" />
-        <Compile Include="Pipeline\Batch\BatchStreamReaderTests.cs" />
-        <Compile Include="Pipeline\Batch\BatchStreamWriterTests.cs" />
-        <Compile Include="Pipeline\File\FileStreamReaderTests.cs" />
-        <Compile Include="Pipeline\File\FileStreamWriterTests.cs" />
-        <Compile Include="Pipeline\Stream\StreamPipelineTests.cs" />
+        <Compile Include="CollectionsTests\BlockingPriorityQueueTests.cs" />
+        <Compile Include="CompressionTests\GzipCompressorTests.cs" />
+        <Compile Include="CompressionTests\GzipDecompressorTests.cs" />
+        <Compile Include="LockersTests\LockCookieTests.cs" />
+        <Compile Include="PipelineTests\Batch\BatchStreamReaderTests.cs" />
+        <Compile Include="PipelineTests\Batch\BatchStreamWriterTests.cs" />
+        <Compile Include="PipelineTests\File\FileStreamReaderTests.cs" />
+        <Compile Include="PipelineTests\File\FileStreamWriterTests.cs" />
+        <Compile Include="PipelineTests\Stream\StreamPipelineTests.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
