@@ -1,6 +1,6 @@
-﻿namespace Zipper.Domain.Pipeline.File
+﻿namespace Zipper.Domain.Pipeline.Byte
 {
-    public class FileStreamWriter : IWriter<System.IO.Stream, byte[]>
+    public class ByteStreamWriter : IWriter<System.IO.Stream, byte[]>
     {
         public void Write(System.IO.Stream input, byte[] data)
         {

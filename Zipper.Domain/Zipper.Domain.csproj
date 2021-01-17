@@ -41,6 +41,7 @@
     <ItemGroup>
         <Compile Include="Models\Batch.cs" />
         <Compile Include="Models\BatchComparer.cs" />
+        <Compile Include="Pipeline\Batch\BatchStreamBase.cs" />
         <Compile Include="Pipeline\Batch\BatchStreamReader.cs" />
         <Compile Include="Pipeline\Batch\BatchStreamWriter.cs" />
         <Compile Include="Collections\BlockingPriorityQueue.cs" />
@@ -51,8 +52,8 @@
         <Compile Include="Extensions\SizeExtensions.cs" />
         <Compile Include="Lockers\ReadLockCookie.cs" />
         <Compile Include="Lockers\WriteLockCookie.cs" />
-        <Compile Include="Pipeline\File\FileStreamReader.cs" />
-        <Compile Include="Pipeline\File\FileStreamWriter.cs" />
+        <Compile Include="Pipeline\Byte\ByteStreamReader.cs" />
+        <Compile Include="Pipeline\Byte\ByteStreamWriter.cs" />
         <Compile Include="Pipeline\IConverter.cs" />
         <Compile Include="Pipeline\IReader.cs" />
         <Compile Include="Pipeline\IWriter.cs" />

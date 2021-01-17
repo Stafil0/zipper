@@ -6,7 +6,7 @@ using Zipper.Domain.Compression;
 using Zipper.Domain.Extensions;
 using Zipper.Domain.Pipeline;
 using Zipper.Domain.Pipeline.Batch;
-using Zipper.Domain.Pipeline.File;
+using Zipper.Domain.Pipeline.Byte;
 using Zipper.Domain.Pipeline.Stream;
 
 namespace Zipper.CLI
@@ -28,7 +28,7 @@ namespace Zipper.CLI
                     }
 
                     pipeline
-                        .Reader(new FileStreamReader(options.BufferSize))
+                        .Reader(new ByteStreamReader(options.BufferSize))
                         .Writer(new BatchStreamWriter())
                         .Converter(new GzipCompressor())
                         .Proceed(inputStream, outputStream);
@@ -65,7 +65,7 @@ namespace Zipper.CLI
 
                     pipeline
                         .Reader(new BatchStreamReader())
-                        .Writer(new FileStreamWriter())
+                        .Writer(new ByteStreamWriter())
                         .Converter(new GzipDecompressor())
                         .Proceed(inputStream, outputStream);
                 }

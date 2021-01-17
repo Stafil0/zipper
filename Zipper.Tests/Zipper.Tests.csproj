@@ -55,11 +55,12 @@
         <Compile Include="CollectionsTests\BlockingPriorityQueueTests.cs" />
         <Compile Include="CompressionTests\GzipCompressorTests.cs" />
         <Compile Include="CompressionTests\GzipDecompressorTests.cs" />
+        <Compile Include="ExtensionsTests\SizeExtensionsTests.cs" />
         <Compile Include="LockersTests\LockCookieTests.cs" />
         <Compile Include="PipelineTests\Batch\BatchStreamReaderTests.cs" />
         <Compile Include="PipelineTests\Batch\BatchStreamWriterTests.cs" />
-        <Compile Include="PipelineTests\File\FileStreamReaderTests.cs" />
-        <Compile Include="PipelineTests\File\FileStreamWriterTests.cs" />
+        <Compile Include="PipelineTests\Byte\ByteStreamReaderTests.cs" />
+        <Compile Include="PipelineTests\Byte\ByteStreamWriterTests.cs" />
         <Compile Include="PipelineTests\Stream\StreamPipelineTests.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
