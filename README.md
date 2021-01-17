@@ -1,4 +1,4 @@
-zipper
+zipper <br> [![Build status](https://ci.appveyor.com/api/projects/status/d1jc4jon83idqadj/branch/main?svg=true)](https://ci.appveyor.com/project/Stafil0/zipper/branch/main)
 =============
 ###### *Trying to create file archiver by myself.*
 
