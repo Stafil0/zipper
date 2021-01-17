@@ -93,6 +93,23 @@ namespace Zipper.Tests.CollectionsTests
         }
 
         [Fact]
+        public void Remove_QueueNotEmpty_CanRemoveOnlyTop()
+        {
+            var queue = new BlockingPriorityQueue<int>();
+            var value1 = 69;
+            var value2 = 42;
+            
+            queue.TryEnqueue(value1);
+            queue.TryEnqueue(value2);
+            
+            Assert.False(queue.Remove(value1));
+            Assert.True(queue.Remove(value2));
+
+            foreach (var value in queue)
+                Assert.NotEqual(value2, value);
+        }
+        
+        [Fact]
         public void TryEnqueue_QueueEmpty_EnqueuedNew()
         {
             var queue = new BlockingPriorityQueue<int>();

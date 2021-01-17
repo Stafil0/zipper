@@ -2,16 +2,16 @@
 using System.IO;
 using System.IO.Compression;
 using Xunit;
-using Zipper.Domain.Compression;
+using Zipper.Domain.Pipeline.GZip;
 
 namespace Zipper.Tests.CompressionTests
 {
-    public class GzipCompressorTests
+    public class GZipBatchCompressorTests
     {
         [Fact]
         public void Compressor_EmptyInput_EmptyOutput()
         {
-            var compressor = new GzipCompressor();
+            var compressor = new GZipBatchCompressor();
             Assert.Null(compressor.Convert(null));
             Assert.Empty(compressor.Convert(new byte[0]));
         }
@@ -21,7 +21,7 @@ namespace Zipper.Tests.CompressionTests
         {
             var data = Guid.NewGuid();
             var bytes = data.ToByteArray();
-            var compressor = new GzipCompressor();
+            var compressor = new GZipBatchCompressor();
 
             var compressed = compressor.Convert(bytes);
             

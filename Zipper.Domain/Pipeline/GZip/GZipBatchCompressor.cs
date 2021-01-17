@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using System.IO.Compression;
-using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.Compression
+namespace Zipper.Domain.Pipeline.GZip
 {
-    public class GzipCompressor : IConverter<byte[], byte[]>
+    public class GZipBatchCompressor : IConverter<byte[], byte[]>
     {
         public byte[] Convert(byte[] data)
         {

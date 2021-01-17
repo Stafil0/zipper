@@ -1,8 +1,8 @@
 using System;
 
-namespace Zipper.Domain.Pipeline.Batch
+namespace Zipper.Domain.Pipeline.GZip
 {
-    public abstract class BatchStreamBase
+    public abstract class GZipBatchStreamBase
     {
         protected static readonly Guid MagicGuid = Guid.Parse("8A002D01-A722-4F29-9B9B-0E854CA9E37B");
 

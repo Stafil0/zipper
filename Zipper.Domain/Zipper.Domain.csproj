@@ -41,13 +41,13 @@
     <ItemGroup>
         <Compile Include="Models\Batch.cs" />
         <Compile Include="Models\BatchComparer.cs" />
-        <Compile Include="Pipeline\Batch\BatchStreamBase.cs" />
-        <Compile Include="Pipeline\Batch\BatchStreamReader.cs" />
-        <Compile Include="Pipeline\Batch\BatchStreamWriter.cs" />
+        <Compile Include="Pipeline\GZip\GZipBatchBase.cs" />
+        <Compile Include="Pipeline\GZip\GZipBatchCompressor.cs" />
+        <Compile Include="Pipeline\GZip\GZipBatchDecompressor.cs" />
+        <Compile Include="Pipeline\GZip\GZipBatchReader.cs" />
+        <Compile Include="Pipeline\GZip\GZipBatchWriter.cs" />
         <Compile Include="Collections\BlockingPriorityQueue.cs" />
         <Compile Include="Collections\IQueue.cs" />
-        <Compile Include="Compression\GZipCompressor.cs" />
-        <Compile Include="Compression\GzipDecompressor.cs" />
         <Compile Include="Exceptions\InvalidFormatException.cs" />
         <Compile Include="Extensions\SizeExtensions.cs" />
         <Compile Include="Lockers\ReadLockCookie.cs" />

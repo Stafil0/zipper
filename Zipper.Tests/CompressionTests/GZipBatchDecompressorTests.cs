@@ -2,17 +2,17 @@
 using System.IO;
 using System.IO.Compression;
 using Xunit;
-using Zipper.Domain.Compression;
 using Zipper.Domain.Exceptions;
+using Zipper.Domain.Pipeline.GZip;
 
 namespace Zipper.Tests.CompressionTests
 {
-    public class GzipDecompressorTests
+    public class GZipBatchDecompressorTests
     {        
         [Fact]
         public void Decompressor_EmptyInput_EmptyOutput()
         {
-            var decompressor = new GzipDecompressor();
+            var decompressor = new GZipBatchDecompressor();
             Assert.Null(decompressor.Convert(null));
             Assert.Empty(decompressor.Convert(new byte[0]));
         }
@@ -29,7 +29,7 @@ namespace Zipper.Tests.CompressionTests
 
             var compressed = output.ToArray();
 
-            var decompressor = new GzipDecompressor();
+            var decompressor = new GZipBatchDecompressor();
             var decompressed = decompressor.Convert(compressed);
 
             var guid = new Guid(decompressed);
@@ -44,7 +44,7 @@ namespace Zipper.Tests.CompressionTests
             
             using var input = new MemoryStream(bytes);
             
-            var decompressor = new GzipDecompressor();
+            var decompressor = new GZipBatchDecompressor();
             Assert.Throws<InvalidFormatException>(() => decompressor.Convert(input.ToArray()));
         }
     }

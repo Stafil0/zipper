@@ -1,17 +1,17 @@
 ﻿using System;
 using System.IO;
 using Xunit;
-using Zipper.Domain.Pipeline.Batch;
+using Zipper.Domain.Pipeline.GZip;
 
-namespace Zipper.Tests.PipelineTests.Batch
+namespace Zipper.Tests.PipelineTests.GZip
 {
-    public class BatchStreamWriterTests
+    public class GZipBatchWriterTests
     {        
         [Fact]
         public void Write_EmptyBuffer_WriteNothing()
         {
             var buffer = new byte[0];
-            var writer = new BatchStreamWriter();
+            var writer = new GZipBatchWriter();
             using var output = new MemoryStream();
             
             writer.Write(output, buffer);
@@ -22,8 +22,8 @@ namespace Zipper.Tests.PipelineTests.Batch
         [Fact]
         public void Write_Buffer_CorrectResult()
         {
-            var writer = new BatchStreamWriter();
-            var reader = new BatchStreamReader();
+            var writer = new GZipBatchWriter();
+            var reader = new GZipBatchReader();
 
             var guid = Guid.NewGuid();
             var bytes = guid.ToByteArray();

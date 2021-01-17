@@ -1,11 +1,10 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using Zipper.Domain.Exceptions;
-using Zipper.Domain.Pipeline;
 
-namespace Zipper.Domain.Compression
+namespace Zipper.Domain.Pipeline.GZip
 {
-    public class GzipDecompressor : IConverter<byte[], byte[]>
+    public class GZipBatchDecompressor : IConverter<byte[], byte[]>
     {
         public byte[] Convert(byte[] data)
         {

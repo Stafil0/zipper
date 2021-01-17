@@ -3,16 +3,16 @@ using System.IO;
 using System.Linq;
 using Xunit;
 using Zipper.Domain.Exceptions;
-using Zipper.Domain.Pipeline.Batch;
+using Zipper.Domain.Pipeline.GZip;
 
-namespace Zipper.Tests.PipelineTests.Batch
+namespace Zipper.Tests.PipelineTests.GZip
 {
-    public class BatchStreamReaderTests
+    public class GZipBatchReaderTests
     {
         [Fact]
         public void Read_StreamEmpty_ReturnEmpty()
         {
-            var reader = new BatchStreamReader();
+            var reader = new GZipBatchReader();
             using var input = new MemoryStream();
             
             Assert.Empty(reader.Read(input));
@@ -21,7 +21,7 @@ namespace Zipper.Tests.PipelineTests.Batch
         [Fact]
         public void Read_InvalidStream_ThrowInvalidFormatException()
         {
-            var reader = new BatchStreamReader();
+            var reader = new GZipBatchReader();
 
             var guid = Guid.NewGuid();
             var bytes = guid.ToByteArray();

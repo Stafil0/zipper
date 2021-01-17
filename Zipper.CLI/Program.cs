@@ -2,11 +2,10 @@
 using System.IO;
 using System.Linq;
 using CommandLine;
-using Zipper.Domain.Compression;
 using Zipper.Domain.Extensions;
 using Zipper.Domain.Pipeline;
-using Zipper.Domain.Pipeline.Batch;
 using Zipper.Domain.Pipeline.Byte;
+using Zipper.Domain.Pipeline.GZip;
 using Zipper.Domain.Pipeline.Stream;
 
 namespace Zipper.CLI
@@ -29,8 +28,8 @@ namespace Zipper.CLI
 
                     pipeline
                         .Reader(new ByteStreamReader(options.BufferSize))
-                        .Writer(new BatchStreamWriter())
-                        .Converter(new GzipCompressor())
+                        .Writer(new GZipBatchWriter())
+                        .Converter(new GZipBatchCompressor())
                         .Proceed(inputStream, outputStream);
                 }
             }
@@ -64,9 +63,9 @@ namespace Zipper.CLI
                     }
 
                     pipeline
-                        .Reader(new BatchStreamReader())
+                        .Reader(new GZipBatchReader())
                         .Writer(new ByteStreamWriter())
-                        .Converter(new GzipDecompressor())
+                        .Converter(new GZipBatchDecompressor())
                         .Proceed(inputStream, outputStream);
                 }
             }
@@ -87,19 +86,19 @@ namespace Zipper.CLI
 
         private static void PrintReadProgress(long total, OnProgressEventArgs args)
         {
-            var progress = (float) args.Progress / total * 100;
+            var progress = (float) args.Total / total * 100;
             Console.WriteLine($"{args.Message}\tTotal read progression: {progress:0.##}%");
         }
 
         private static void PrintCompressionLevel(long original, OnProgressEventArgs args)
         {
-            var compression = original / (float) args.Progress;
+            var compression = original / (float) args.Total;
             Console.WriteLine($"{args.Message}\tCompression level: {compression:0.##}%");
         }
 
         private static void PrintDecompressionSize(OnProgressEventArgs args)
         {
-            Console.WriteLine($"Decompressed file size:\t{SizeExtensions.GetReadableSize(args.Progress)}");
+            Console.WriteLine($"Decompressed file size:\t{SizeExtensions.GetReadableSize(args.Total)}");
         }
 
         public static int Main(string[] args)

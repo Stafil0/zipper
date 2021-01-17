@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Zipper.Domain.Exceptions;
 
-namespace Zipper.Domain.Pipeline.Batch
+namespace Zipper.Domain.Pipeline.GZip
 {
-    public class BatchStreamReader :
-        BatchStreamBase,
+    public class GZipBatchReader :
+        GZipBatchStreamBase,
         IReader<System.IO.Stream, IEnumerable<byte[]>>
     {
         public IEnumerable<byte[]> Read(System.IO.Stream input)
