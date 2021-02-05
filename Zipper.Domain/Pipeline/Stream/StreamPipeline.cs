@@ -313,33 +313,19 @@ namespace Zipper.Domain.Pipeline.Stream
             }
             finally
             {
-                Dispose(false);
+                Dispose();
             }
         }
 
         /// <summary>
         /// Dispose managed resources.
         /// </summary>
-        public void Dispose() => Dispose(true);
-
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
-        /// <param name="disposing">Is object disposing.</param>
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
-            if (disposing)
-            {
-                _workers.ForEach(t => t.Abort());
-                _workers.Clear();
-
-                _reader?.Abort();
-                _reader = null;
-
-                _writer?.Abort();
-                _writer = null;
-            }
-
+            _writer = null;
+            _reader = null;
+            _workers.Clear();
+            
             _inputs = new ConcurrentBag<Batch>();
             _outputs = new BlockingPriorityQueue<Batch>();
             _exceptions.Clear();
